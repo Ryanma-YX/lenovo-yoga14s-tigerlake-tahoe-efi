@@ -36,15 +36,24 @@ EB.BST.FBS|! ... EB.RH.LRH
 - **U 盘不能启动**：实际从 USB 上加载了 OpenCore、DMG、boot.efi 与内核集合。但 macOS 接管后的 USB 映射仍需验证。
 - **XhciPortLimit 在所有新系统必定失效**：该说法过时；OpenCore 后续有兼容性更新。本机仍保留 false，优先完成真正的端口映射。
 
-## 下一步验证清单
+## 后续实机进展（2026-10-26）
 
-- [ ] 完成 macOS 安装，进入桌面并记录准确系统构建。
+完成 Tahoe 26.7.1 / 25G241 安装，外接 SSD 独立引导通过，OpenCore 已切换 1.0.8 RELEASE。安装 Graphics 0.2.0 后出现登录黑屏：11 份 WindowServer 报告为 COREANIMATION code 4，适配器报 `Xe compiler unsupported bitcode layout`。禁用加速后可登录，但另有主线程无响应 40 秒的 WATCHDOG 报告，不能视为同一个错误或完整修复。
+
+触控板最初已有启用的 VoodooI2C/VoodooI2CHID，正常启动时控制器已加载，但 ACPI 中没有 TPD0 设备。定向覆盖本机 TPD0 的状态与 ELAN 初始化后，机主确认触控板正常。详见 [触控板修复](TOUCHPAD.md) 与 [显卡故障](GRAPHICS.md)。
+
+## 验证清单
+
+- [x] 完成 macOS 安装，进入桌面并记录准确系统构建：26.7.1 / 25G241。
 - [ ] 完成本机 USB 端口映射，替换 UTBDefault。
-- [ ] 验证键盘、触控板、无线、蓝牙、音频与麦克风。
+- [x] 机主确认触控板可用；GPIO 中断模式仍未验证。
+- [ ] 完成键盘各键、无线、蓝牙、音频与麦克风验证。
 - [ ] 验证高分屏、背光、外接显示与睡眠。
-- [ ] 在满足上游系统版本条件后安装 Graphics pkg，验证 Metal。
-- [ ] 验证外置 SSD 上的独立 OpenCore 引导。
-- [ ] 稳定后再评估切换 OpenCore RELEASE、减少诊断参数。
+- [x] 在满足系统版本条件后安装 Graphics 0.2.0；Metal 验证失败，继续排查。
+- [ ] 修复 shader 编译问题及禁用加速后的 WindowServer 卡死。
+- [x] 验证外置 SSD 上的独立 OpenCore 引导。
+- [x] 切换匹配的 OpenCore RELEASE 文件，关闭 OpenCore 调试输出。
+- [ ] 稳定后减少剩余内核诊断参数。
 
 ## 参考
 

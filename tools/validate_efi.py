@@ -88,11 +88,15 @@ def main():
     for relative, digest in expected.items():
         require(hashlib.sha256(inside(ROOT, relative).read_bytes()).hexdigest() == digest,
                 'SHA256 mismatch: ' + relative)
+    hardware = json.loads((ROOT / 'docs/hardware.json').read_text(encoding='utf8'))
     report = {'status': 'passed', 'configs': results, 'hashedFiles': len(expected),
               'identityRedaction': 'passed', 'fileReferences': 'passed',
               'amlChecksums': 'passed', 'kextDependencyOrder': 'passed',
-              'UEFIX64Architecture': 'passed', 'physicalMilestone': 'user-confirmed installer UI',
-              'completeInstallationVerified': False, 'graphicsAccelerationVerified': False}
+              'UEFIX64Architecture': 'passed', 'physicalMilestone': hardware['verifiedMilestone'],
+              'physicalEvidenceSource': 'recorded user feedback; this command does not test hardware',
+              **{key: hardware[key] for key in ['completeInstallationVerified',
+                 'independentSSDBootVerified', 'trackpadVerified',
+                 'desktopStabilityVerified', 'graphicsAccelerationVerified']}}
     if os.name == 'nt':
         for relative in results:
             result = subprocess.run([str(ROOT / 'tools/ocvalidate.exe'), str(ROOT / relative)],

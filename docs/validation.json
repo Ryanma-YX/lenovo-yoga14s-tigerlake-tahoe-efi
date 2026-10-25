@@ -4,22 +4,26 @@
     "EFI/OC/config.plist": {
       "activeKextEntries": 29,
       "internalDependencyEdges": 26,
-      "acpiTables": 11
+      "acpiTables": 12
     },
     "profiles/config-basic-display.plist": {
       "activeKextEntries": 29,
       "internalDependencyEdges": 26,
-      "acpiTables": 11
+      "acpiTables": 12
     }
   },
-  "hashedFiles": 93,
+  "hashedFiles": 95,
   "identityRedaction": "passed",
   "fileReferences": "passed",
   "amlChecksums": "passed",
   "kextDependencyOrder": "passed",
   "UEFIX64Architecture": "passed",
-  "physicalMilestone": "user-confirmed installer UI",
-  "completeInstallationVerified": false,
+  "physicalMilestone": "User confirmed installed macOS, independent external-SSD boot, and working trackpad on 2026-10-26",
+  "physicalEvidenceSource": "recorded user feedback; this command does not test hardware",
+  "completeInstallationVerified": true,
+  "independentSSDBootVerified": true,
+  "trackpadVerified": true,
+  "desktopStabilityVerified": false,
   "graphicsAccelerationVerified": false,
   "ocvalidate": "OpenCore 1.0.8: both configurations passed"
 }

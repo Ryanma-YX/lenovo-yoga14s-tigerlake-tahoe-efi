@@ -1,11 +1,11 @@
 {
   "EFI/BOOT/.contentFlavour": "5546c5dcc63bda3b1a8a4a732c69fd6fa645cb2b31b16f18e62453318104f3b7",
   "EFI/BOOT/.contentVisibility": "75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d",
-  "EFI/BOOT/BOOTx64.efi": "7b26e33bfd84fbc5025fcb16994f7eda3224d15edcfc004d71c8761e08a766fd",
+  "EFI/BOOT/BOOTx64.efi": "d0163dfbe5d2ea46aececd7d7349acfa5b75dfed2993e8489816f3dda71914c8",
   "EFI/OC/.contentFlavour": "5546c5dcc63bda3b1a8a4a732c69fd6fa645cb2b31b16f18e62453318104f3b7",
   "EFI/OC/.contentVisibility": "75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d",
-  "EFI/OC/config.plist": "7b1bbcd46dc687e9c76a89be03d059baa9a3d91470572ee154ddc31bb259f35a",
-  "EFI/OC/OpenCore.efi": "11ba0b763d765fb82187214d1fa2ee5a9330f851461c12e34d532b7b91097875",
+  "EFI/OC/config.plist": "d9f11b149cfe00073b172550627a433f46499677eeaa16bad65d397cc7ace9f9",
+  "EFI/OC/OpenCore.efi": "9ef21f9d846a992c030fa5858736a6d9efa70a3b4ad88b8d747338bb457b14d4",
   "EFI/OC/ACPI/SSDT-ALS0.aml": "ed4a1ad31606251b7b3359b58ec6567aeb82aa8a23c105d731298e690c34b029",
   "EFI/OC/ACPI/SSDT-EC.aml": "169b9f8cd2a87dcad979f702b65a1be73457b514eb0004bf86462c1dcbf8e48f",
   "EFI/OC/ACPI/SSDT-GPI0.aml": "1e55d68cbaf2f9e81629bc0845f45880801ba865e0ef879ea06313130ee4939f",
@@ -19,8 +19,8 @@
   "EFI/OC/ACPI/SSDT-XOSI.aml": "84e5cc353aa69f90add8c4e76230191671c18d86aaa16cdc7dadf98093eb079d",
   "EFI/OC/Drivers/apfs_aligned.efi": "1663fa54103cf808b45fda3f0385626d1f1899a9ed8258d21a827db4426ed408",
   "EFI/OC/Drivers/HfsPlus.efi": "a55b5fff36578864ba6792c4c6369c71f6f35b61dd5a853ddf8583cd36c31d8f",
-  "EFI/OC/Drivers/OpenRuntime.efi": "cf2df818f7510ca1be321f1ff6481fcbe246c92b16a905ffc5ff654158e05b66",
-  "EFI/OC/Drivers/ResetNvramEntry.efi": "e89433174be279f16a71cd19da8699baf6bc6f8372b642d3b3ed7eac4222166a",
+  "EFI/OC/Drivers/OpenRuntime.efi": "c67be56660047237360df5eb7f080a2b13129d68e829bee9ad0230e45d516be8",
+  "EFI/OC/Drivers/ResetNvramEntry.efi": "3c34cd3a6cdfbbaf9c548c59058e9537dbd527f8e9b82261153386e49329879d",
   "EFI/OC/Kexts/YogaSMC.kext/Contents/Info.plist": "40e1ec2f9fdf0d5d3ebe6a8ab15a45a53cb32cabbbef71a48258fe9c5e67d5c2",
   "EFI/OC/Kexts/YogaSMC.kext/Contents/MacOS/YogaSMC": "073736c22b66e9bfee30ab159e53227a004ec507a043042c4c3e03baaf642e6e",
   "EFI/OC/Kexts/YogaSMC.kext/Contents/_CodeSignature/CodeResources": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
@@ -91,5 +91,7 @@
   "EFI/OC/Kexts/AMFIPass.kext/Contents/_CodeSignature/CodeResources": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
   "EFI/OC/Kexts/AirportItlwm.kext/Contents/Info.plist": "7c40b4f5357b2285ddba9d2f650d639aed13fbb2b046fb3746be98ebaf258770",
   "EFI/OC/Kexts/AirportItlwm.kext/Contents/MacOS/AirportItlwm": "259bac9432bffa8bf9c73411d8ac8f4a854552375e9f60ba0870ea3151ed973c",
-  "profiles/config-basic-display.plist": "f6b85e029be61bf5073353b6d9b15a89f083b61db407c37e3cd6213241810d02"
+  "profiles/config-basic-display.plist": "7d33b562e0a525fbdc126e8981c0eadeb85683a7a42126903ebd202671e1a0a9",
+  "ACPI-Sources/SSDT-YTPD.dsl": "98faafc280f40528ef532441c4ad6ca0cad0156dcb96117f6e74e780743c3623",
+  "EFI/OC/ACPI/SSDT-YTPD.aml": "e4d1d39132e6a483257c9ba3611fbdcf92a35164ab7c13dd0910aca1ebfe2412"
 }

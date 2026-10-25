@@ -38,7 +38,7 @@ python tools/personalize.py --from-config "X:\path\to\your-original-config.plist
 
 保持启动 U 盘与目标 SSD 连接。每次通过同一个 OpenCore 引导；第一阶段重启后，选择 SSD 上新增的 `macOS Installer`，安装结束后选择系统卷。不要每次都重新选在线恢复镜像。
 
-当前验证止于“进入安装界面”。完整安装和将 EFI 迁移到外置 SSD 的独立启动验证仍待完成。
+本机现已完成安装，并通过外接 SSD 自己的 EFI 独立启动。安装阶段仍可保留 U 盘作为退路；确认 SSD 启动成功后，不必为每次启动额外插安装 U 盘。复制 EFI 时须保留同一 ESP 上已有的其他系统文件，不能抹掉整个磁盘。
 
 ## 使用基础显示配置
 
@@ -47,3 +47,9 @@ python tools/personalize.py --from-config "X:\path\to\your-original-config.plist
 ## 图形包
 
 恢复环境中的画面不是 Metal 加速验证。按照归档时的上游要求，先安装/更新到符合 WhateverXe Graphics 要求的 macOS 构建，再在 macOS 内安装匹配的 Graphics pkg。不要在 Tahoe 26.6.2 中绕过 Graphics 0.2.0 的版本检查。
+
+当前实机系统为 26.7.1，已安装 Graphics 0.2.0；安装成功并允许扩展后仍发生 Metal 编译错误。主配置使用 `-wex-noaccel`，不要把去掉它当成已经完成的修复。当前症状与后续测试方法见 [显卡故障](GRAPHICS.md)。
+
+## 触控板与 BIOS 更新
+
+本机已验证的触控板修复包含 `SSDT-YTPD.aml` 和两条配套改名，必须一起使用。它限定 FJCN65WW 的 DSDT 表长度、OEM Table ID 及唯一模式。更新 BIOS 或换机后必须重新核对，不能假定这些字节仍然匹配。源码、验证和回退步骤见 [TOUCHPAD.md](TOUCHPAD.md)。

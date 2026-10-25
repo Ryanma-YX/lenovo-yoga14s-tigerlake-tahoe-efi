@@ -152,11 +152,6 @@
     "commit": "9265e787bbd288ef6f7d5cee2cb77e751377b4ef",
     "download_sha256": "e5a8c15adeba9251be2709899214fe7fd847f6d38fca6c09adb65e9b2af64f0a"
   },
-  "OpenCore-DEBUG": {
-    "url": "https://github.com/acidanthera/OpenCorePkg/releases/download/1.0.8/OpenCore-1.0.8-DEBUG.zip",
-    "sha256": "3f5f42b85703cf2c08e8dcd9245a52fb4326c9f4ef335c75b49f516cbbe131c6",
-    "note": "BOOTx64, OpenCore, OpenRuntime and ResetNvramEntry are the matching 1.0.8 DEBUG set."
-  },
   "OpenCore-ocvalidate": {
     "version": "1.0.8",
     "note": "Windows ocvalidate from the matching RELEASE distribution."
@@ -167,5 +162,15 @@
     "build": "25G83",
     "verification": "Apple chunklist verification passed during local media preparation",
     "note": "No Apple recovery DMG, chunklist or Graphics installer package is uploaded."
+  },
+  "OpenCore-RELEASE": {
+    "url": "https://github.com/acidanthera/OpenCorePkg/releases/download/1.0.8/OpenCore-1.0.8-RELEASE.zip",
+    "sha256": "2011e8b7216ecb2645d97ea710df965947edd406846e92050b9bc4190be6d27b",
+    "note": "Current BOOTx64, OpenCore, OpenRuntime and ResetNvramEntry are the matching 1.0.8 RELEASE set.",
+    "previousInstallerBuild": {
+      "url": "https://github.com/acidanthera/OpenCorePkg/releases/download/1.0.8/OpenCore-1.0.8-DEBUG.zip",
+      "sha256": "3f5f42b85703cf2c08e8dcd9245a52fb4326c9f4ef335c75b49f516cbbe131c6",
+      "note": "BOOTx64, OpenCore, OpenRuntime and ResetNvramEntry are the matching 1.0.8 DEBUG set."
+    }
   }
 }

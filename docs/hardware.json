@@ -10,7 +10,16 @@
   "wireless": "Intel AX201 8086:A0F0",
   "audio": "Realtek ALC287",
   "smbios": "MacBookPro16,2",
-  "verifiedMilestone": "User reported reaching the macOS recovery/installer UI on 2026-10-25",
-  "installationAndAccelerationVerified": false,
-  "serialNumbersIncluded": false
+  "verifiedMilestone": "User confirmed installed macOS, independent external-SSD boot, and working trackpad on 2026-10-26",
+  "serialNumbersIncluded": false,
+  "macOS": "26.7.1",
+  "build": "25G241",
+  "openCoreBuild": "1.0.8 RELEASE",
+  "completeInstallationVerified": true,
+  "independentSSDBootVerified": true,
+  "trackpadVerified": true,
+  "graphicsAccelerationVerified": false,
+  "desktopStabilityVerified": false,
+  "dvmtPreallocatedMiB": 64,
+  "trackpad": "ELAN HID-over-I2C, _SB.PC00.I2C1.TPD0, PNP0C50"
 }
