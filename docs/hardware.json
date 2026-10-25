@@ -1,0 +1,16 @@
+{
+  "model": "Lenovo Yoga 14s 2021 / 82G2",
+  "bios": "FJCN65WW",
+  "cpu": "Intel Core i5-1135G7",
+  "cores": 4,
+  "threads": 8,
+  "gpu": "Intel Iris Xe 8086:9A49",
+  "memoryGiB": 16,
+  "display": "2880x1800 internal panel",
+  "wireless": "Intel AX201 8086:A0F0",
+  "audio": "Realtek ALC287",
+  "smbios": "MacBookPro16,2",
+  "verifiedMilestone": "User reported reaching the macOS recovery/installer UI on 2026-10-25",
+  "installationAndAccelerationVerified": false,
+  "serialNumbersIncluded": false
+}

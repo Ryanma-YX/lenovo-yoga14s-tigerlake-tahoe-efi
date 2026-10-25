@@ -1,0 +1,708 @@
+diff --git a/OpCore-Simplify.py b/OpCore-Simplify.py
+index e446a21..cc1a952 100644
+--- a/OpCore-Simplify.py
++++ b/OpCore-Simplify.py
+@@ -312,6 +312,11 @@ class OCPE:
+         self.u.progress_bar(title, steps, len(steps), done=True)
+         
+         print("OpenCore EFI build complete.")
++        if kext_maestro.kext_data.uses_whateverxe(self.k.kexts):
++            setup_source = os.path.join(os.path.dirname(os.path.realpath(__file__)), "docs", "WhateverXe.md")
++            shutil.copyfile(setup_source, os.path.join(self.result_dir, "WhateverXe-SETUP.md"))
++            print("Xe acceleration also requires Graphics pkg 0.2.0 installed in macOS.")
++            print("Read Results/WhateverXe-SETUP.md before using this EFI; other OCLP patches require the custom Mod build.")
+         time.sleep(2)
+         
+     def check_bios_requirements(self, org_hardware_report, hardware_report):
+diff --git a/Scripts/compatibility_checker.py b/Scripts/compatibility_checker.py
+index c0b16a8..9400fac 100644
+--- a/Scripts/compatibility_checker.py
++++ b/Scripts/compatibility_checker.py
+@@ -114,7 +114,11 @@ class CompatibilityChecker:
+             navi_requires_developer_mode = False
+ 
+             if "Intel" in gpu_manufacturer:
+-                if device_id.startswith(("0042", "0046")) and self.hardware_report.get("Motherboard").get("Platform") != "Desktop":
++                if gpu_data.is_tiger_lake_xe(gpu_props):
++                    # EFI eligibility only: signed Graphics pkg is installed in macOS,
++                    # independently of OCLP. Exact OS builds remain a runtime check.
++                    max_version, min_version = gpu_data.XE_MAX_DARWIN, gpu_data.XE_MIN_DARWIN
++                elif device_id.startswith(("0042", "0046")) and self.hardware_report.get("Motherboard").get("Platform") != "Desktop":
+                     max_version = "17.99.99"
+                 elif device_id.startswith("01") and not device_id[-2] in ("5", "6") and not device_id in ("0102", "0106", "010A"):
+                     max_version = "17.99.99"
+@@ -129,7 +133,7 @@ class CompatibilityChecker:
+                 else:
+                     max_version = min_version = None
+ 
+-                if self.is_low_end_intel_cpu(self.hardware_report.get("CPU").get("Processor Name")):
++                if self.is_low_end_intel_cpu(self.hardware_report.get("CPU").get("Processor Name")) and not gpu_data.is_tiger_lake_xe(gpu_props):
+                     max_version = min_version = None
+             elif "AMD" in gpu_manufacturer:
+                 if "Navi 2" in gpu_codename:
+@@ -186,6 +190,10 @@ class CompatibilityChecker:
+ 
+             print("{}- {}: {}".format(" "*3, gpu_name, self.show_macos_compatibility(gpu_props.get("Compatibility"))))
+ 
++            if gpu_data.is_tiger_lake_xe(gpu_props):
++                print("      Experimental WhateverXe: requires AMFIPass Mod and Graphics pkg 0.2.0 in macOS.")
++                print("      Qualified OS builds only; see docs/WhateverXe.md. Hardware acceleration is not guaranteed.")
++
+             if "OCLP Compatibility" in gpu_props:
+                 print("{}- OCLP Compatibility{}: {}".format(" "*6, " (requires developer mode)" if navi_requires_developer_mode else "", self.show_macos_compatibility(gpu_props.get("OCLP Compatibility"))))
+             connected_monitors = []
+diff --git a/Scripts/config_prodigy.py b/Scripts/config_prodigy.py
+index e3d7ad0..694af04 100644
+--- a/Scripts/config_prodigy.py
++++ b/Scripts/config_prodigy.py
+@@ -2,6 +2,7 @@ from Scripts.datasets import chipset_data
+ from Scripts.datasets import cpu_data
+ from Scripts.datasets import mac_model_data
+ from Scripts.datasets import kext_data
++from Scripts.datasets import gpu_data
+ from Scripts.datasets import os_data
+ from Scripts.datasets import pci_data
+ from Scripts.datasets import codec_layouts
+@@ -69,6 +70,11 @@ class ConfigProdigy:
+     def igpu_properties(self, platform, integrated_gpu, monitor, macos_version):
+         igpu_properties = {}
+ 
++        # Xe selects its own backend by physical PCI ID. Legacy WEG properties,
++        # including ICL spoofing and framebuffer defaults, must not reach Xe.
++        if gpu_data.is_tiger_lake_xe(integrated_gpu[1]):
++            return igpu_properties
++
+         device_id = integrated_gpu[1].get("Device ID")[5:]
+ 
+         if device_id.startswith(("0042", "0046")):
+@@ -320,6 +326,8 @@ class ConfigProdigy:
+ 
+         if kexts[kext_data.kext_index_by_name.get("WhateverGreen")].checked:
+             for gpu_name, gpu_info in hardware_report.get("GPU", {}).items():
++                if gpu_data.is_tiger_lake_xe(gpu_info):
++                    continue
+                 if gpu_info.get("Device Type") == "Integrated GPU":
+                     if "Intel" in gpu_info.get("Manufacturer"):
+                         add_device_property(gpu_info.get("PCI Path", "PciRoot(0x0)/Pci(0x2,0x0)"), self.igpu_properties(
+@@ -523,7 +531,9 @@ class ConfigProdigy:
+                 if not "-lilubetaall" in boot_args:
+                     boot_args.append("-lilubetaall")
+ 
+-            if kext.name == "WhateverGreen":
++            if kext.name == "WhateverXe":
++                boot_args.extend(("-allow3d", "-disablegfxfirmware"))
++            elif kext.name == "WhateverGreen":
+                 if  any(tuple(map(int, "3840x2160".split("x"))) <= tuple(map(int, monitor_info.get("Resolution").split("x"))) for monitor_name, monitor_info in hardware_report.get("Monitor", {}).items()) and \
+                     self.utils.parse_darwin_version(macos_version) < self.utils.parse_darwin_version("20.0.0"):
+                     boot_args.append("-cdfon")
+@@ -577,7 +587,9 @@ class ConfigProdigy:
+ 
+         return " ".join(boot_args)
+     
+-    def csr_active_config(self, macos_version):
++    def csr_active_config(self, macos_version, kexts=()):
++        if kext_data.uses_whateverxe(kexts):
++            return "03080000"
+         if self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("20.0.0"):
+             return "030A0000"
+         elif self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("18.0.0"):
+@@ -613,6 +625,8 @@ class ConfigProdigy:
+         return uefi_drivers
+ 
+     def genarate(self, hardware_report, disabled_devices, smbios_model, macos_version, needs_oclp, kexts, config):
++        if kext_data.uses_whateverxe(kexts) and needs_oclp:
++            raise ValueError("Automatic WhateverXe + OCLP builds require a matching custom Mod signing chain; see docs/WhateverXe.md.")
+         del config["#WARNING - 1"]
+         del config["#WARNING - 2"]
+         del config["#WARNING - 3"]
+@@ -687,7 +701,7 @@ class ConfigProdigy:
+ 
+         del config["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]["#INFO (prev-lang:kbd)"]
+         config["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]["boot-args"] = self.boot_args(hardware_report, macos_version, needs_oclp, kexts, config)
+-        config["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]["csr-active-config"] = self.utils.hex_to_bytes(self.csr_active_config(macos_version))
++        config["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]["csr-active-config"] = self.utils.hex_to_bytes(self.csr_active_config(macos_version, kexts))
+         config["NVRAM"]["Delete"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"].append("csr-active-config")
+         config["NVRAM"]["Add"]["7C436110-AB2A-4BBB-A880-FE41995C9F82"]["prev-lang:kbd"] = self.utils.hex_to_bytes("")
+ 
+diff --git a/Scripts/datasets/gpu_data.py b/Scripts/datasets/gpu_data.py
+index bbcfcd5..6d77d26 100644
+--- a/Scripts/datasets/gpu_data.py
++++ b/Scripts/datasets/gpu_data.py
+@@ -1,3 +1,13 @@
++# WhateverXe 0.5.0: exact physical IDs, not all 9Axx or all Xe generations.
++# https://github.com/b00t0x/WhateverXe/blob/0.5.0/docs/device-selection.md
++TIGER_LAKE_XE_IDS = ("9A40", "9A49", "9A60", "9A68", "9A70", "9A78")
++XE_MIN_DARWIN = "20.6.0"
++XE_MAX_DARWIN = "25.99.99"
++
++def is_tiger_lake_xe(gpu_props):
++    device_id = gpu_props.get("Device ID", "").upper().replace(":", "-")
++    return device_id in ("8086-" + device for device in TIGER_LAKE_XE_IDS)
++
+ # Resource: https://en.wikipedia.org/wiki/Graphics_Core_Next
+ AMDCodenames = [
+     "Hainan",
+@@ -9,4 +19,4 @@ AMDCodenames = [
+     "Hawaii",
+     "Tonga",
+     "Fiji"
+-]
+\ No newline at end of file
++]
+diff --git a/Scripts/datasets/kext_data.py b/Scripts/datasets/kext_data.py
+index d8c4599..ba4fc96 100644
+--- a/Scripts/datasets/kext_data.py
++++ b/Scripts/datasets/kext_data.py
+@@ -1,6 +1,21 @@
+ from Scripts.datasets import os_data
++from Scripts.datasets import gpu_data
+ import random
+ 
++# Keep the Mod trust chain and download cache separate from ordinary AMFIPass.
++AMFIPASS_MOD_PRODUCT = "AMFIPass-WhateverXe"
++AMFIPASS_MOD_DOWNLOAD = {
++    "id": "whateverxe-amfipass-1.4.1-e83018e",
++    "url": "https://raw.githubusercontent.com/b00t0x/WhateverXe-Graphics/e83018e76c0f39f0f870ff38dcc304fb357c3485/extras/AMFIPass-v1.4.1-Mod-RELEASE.zip",
++    "sha256": "71f41de42e355d2a83e6f093ef34a5b24d0a9c9a9085830b2317f1b874f56250"
++}
++
++def uses_whateverxe(kexts):
++    return any(kext.name == "WhateverXe" and kext.checked for kext in kexts)
++
++def amfipass_product_name(kexts):
++    return AMFIPASS_MOD_PRODUCT if uses_whateverxe(kexts) else "AMFIPass"
++
+ class KextInfo:
+     def __init__(self, name, description, category, required = False, min_darwin_version = (), max_darwin_version = (), requires_kexts = [], conflict_group_id = None, allow_force_load = True, github_repo = {}, download_info = {}):
+         self.name = name
+@@ -142,6 +157,22 @@ kexts = [
+             "repo": "WhateverGreen"
+         }
+     ),
++    KextInfo(
++        name = "WhateverXe",
++        description = "Experimental Tiger Lake Xe-LP; requires signed Graphics pkg 0.2.0 in macOS",
++        category = "Graphics",
++        min_darwin_version = gpu_data.XE_MIN_DARWIN,
++        max_darwin_version = gpu_data.XE_MAX_DARWIN,
++        allow_force_load = False,
++        requires_kexts = ["Lilu", "AMFIPass"],
++        conflict_group_id = "GPU",
++        github_repo = {"owner": "b00t0x", "repo": "WhateverXe"},
++        download_info = {
++            "id": 671657798,
++            "url": "https://github.com/b00t0x/WhateverXe/releases/download/0.5.0/WhateverXe-0.5.0-RELEASE.zip",
++            "sha256": "59cd4b82814b9ae5b5b1029612fc6c7a7ca0a32b7871a7d42e857a6158c3d3ec"
++        }
++    ),
+     KextInfo(
+         name = "AppleALC", 
+         description = "Native macOS HD audio for not officially supported codecs",
+diff --git a/Scripts/gathering_files.py b/Scripts/gathering_files.py
+index 919b917..29f7469 100644
+--- a/Scripts/gathering_files.py
++++ b/Scripts/gathering_files.py
+@@ -1,4 +1,5 @@
+ from Scripts import github
++from Scripts.datasets import kext_data
+ from Scripts import kext_maestro
+ from Scripts import integrity_checker
+ from Scripts import resource_fetcher
+@@ -65,7 +66,9 @@ class gatheringFiles:
+             if not kext.checked:
+                 continue
+ 
+-            if kext.download_info:
++            if kext.name == "AMFIPass" and kext_data.uses_whateverxe(kexts):
++                add_product_info({"product_name": kext_data.AMFIPASS_MOD_PRODUCT, **kext_data.AMFIPASS_MOD_DOWNLOAD})
++            elif kext.download_info:
+                 if not kext.download_info.get("sha256"):
+                     kext.download_info["sha256"] = None
+                 add_product_info({"product_name": kext.name, **kext.download_info})
+@@ -170,7 +173,9 @@ class gatheringFiles:
+ 
+             product_name = product.name if not isinstance(product, dict) else product.get("Name")
+             
+-            if product_name == "AirportItlwm":
++            if product_name == "AMFIPass":
++                product_name = kext_data.amfipass_product_name(kexts)
++            elif product_name == "AirportItlwm":
+                 version = macos_version[:2]
+                 if all((self.utils.parse_darwin_version("24.0.0") <= self.utils.parse_darwin_version(macos_version), kexts[kext_maestro.kext_data.kext_index_by_name.get("IOSkywalkFamily")].checked, kexts[kext_maestro.kext_data.kext_index_by_name.get("IO80211FamilyLegacy")].checked)):
+                     version = "22"
+@@ -213,6 +218,10 @@ class gatheringFiles:
+             seen_download_urls.add(product_download_url)
+ 
+             history_item = local_download_history.get(product_name)
++            pinned_xe_product = product_name in ("WhateverXe", kext_data.AMFIPASS_MOD_PRODUCT)
++            pinned_cache_matches = history_item is not None and all(
++                history_item.get(key) == product_info.get(key) for key in ("id", "url", "sha256")
++            )
+             asset_dir = os.path.join(self.ock_files_dir, product_name)
+             manifest_path = os.path.join(asset_dir, "manifest.json")
+ 
+@@ -220,7 +229,7 @@ class gatheringFiles:
+                 is_latest_id = (product_id == history_item.get("id"))
+                 folder_is_valid, _ = self.integrity_checker.verify_folder_integrity(asset_dir, manifest_path)
+                 
+-                if is_latest_id and folder_is_valid:
++                if is_latest_id and folder_is_valid and (not pinned_xe_product or pinned_cache_matches):
+                     print(f"\nLatest version of {product_name} already downloaded.")
+                     continue
+ 
+@@ -241,7 +250,7 @@ class gatheringFiles:
+             zip_path = os.path.join(self.temporary_dir, product_name) + ".zip"
+             if not self.fetcher.download_and_save_file(product_download_url, zip_path, sha256_hash):
+                 folder_is_valid, _ = self.integrity_checker.verify_folder_integrity(asset_dir, manifest_path)
+-                if history_item is not None and folder_is_valid:
++                if history_item is not None and folder_is_valid and (not pinned_xe_product or pinned_cache_matches):
+                     print("Using previously downloaded version of {}.".format(product_name))
+                     continue
+                 else:
+diff --git a/Scripts/kext_maestro.py b/Scripts/kext_maestro.py
+index 4b7ec47..613c578 100644
+--- a/Scripts/kext_maestro.py
++++ b/Scripts/kext_maestro.py
+@@ -1,5 +1,6 @@
+ from Scripts.datasets import cpu_data
+ from Scripts.datasets import kext_data
++from Scripts.datasets import gpu_data
+ from Scripts.datasets import os_data
+ from Scripts.datasets import pci_data
+ from Scripts.datasets import codec_layouts
+@@ -190,7 +191,20 @@ class KextMaestro:
+             int(hardware_report.get("CPU").get("Core Count")) > 6:
+             selected_kexts.append("CpuTopologyRebuild")
+ 
++        has_xe = any(gpu_data.is_tiger_lake_xe(gpu) for gpu in hardware_report.get("GPU", {}).values())
++        if has_xe:
++            if not self.is_kext_compatible(self.kexts[kext_data.kext_index_by_name["WhateverXe"]], macos_version):
++                raise ValueError("WhateverXe requires a qualified Big Sur through Tahoe build; see docs/WhateverXe.md.")
++            selected_kexts.append("WhateverXe")
++            print("\nExperimental Xe: AMFIPass Mod will replace ordinary AMFIPass for this EFI.")
++            print("Install WhateverXe Graphics 0.2.0 inside the target macOS; see docs/WhateverXe.md.")
++            if len(hardware_report.get("GPU", {})) > 1:
++                print("Mixed GPUs: WhateverGreen/NootRX/NootedRed cannot be loaded with WhateverXe.")
++                print("Other GPU acceleration and display routing are not configured by this mode.")
++
+         for gpu_name, gpu_props in hardware_report.get("GPU", {}).items():
++            if has_xe:
++                continue
+             if "Integrated GPU" in gpu_props.get("Device Type"):
+                 if "AMD" in gpu_props.get("Manufacturer"):
+                     selected_kexts.append("NootedRed")
+@@ -431,6 +445,13 @@ class KextMaestro:
+             selected_kexts.extend(("AppleIntelCPUPowerManagement", "AppleIntelCPUPowerManagementClient"))
+ 
+         if needs_oclp:
++            if has_xe:
++                raise ValueError(
++                    "Automatic WhateverXe + OCLP builds are not supported: upstream OCLP and Xe Mod payloads "
++                    "use different AMFIPass trust anchors. Select Wi-Fi/audio without root patches "
++                    "(e.g. itlwm/native AirportItlwm and SimpleHDA), or integrate the matching custom OCLP "
++                    "manually. See docs/WhateverXe.md."
++                )
+             selected_kexts.extend(("AMFIPass", "RestrictEvents"))
+ 
+         selected_kexts = list(dict.fromkeys(selected_kexts))
+@@ -442,6 +463,14 @@ class KextMaestro:
+         return needs_oclp
+ 
+     def install_kexts_to_efi(self, macos_version, kexts_directory):
++        has_xe = kext_data.uses_whateverxe(self.kexts)
++        if has_xe:
++            for kext in self.kexts:
++                if kext.checked and kext.conflict_group_id == "GPU" and kext.name != "WhateverXe":
++                    raise ValueError("WhateverXe cannot be loaded with {}.".format(kext.name))
++            if not self.kexts[kext_data.kext_index_by_name["AMFIPass"]].checked:
++                raise ValueError("WhateverXe requires AMFIPass Mod.")
++
+         for kext in self.kexts:
+             if kext.checked:
+                 try:
+@@ -452,6 +481,12 @@ class KextMaestro:
+                         kext_name = "rtw88"
+ 
+                     search_directory = self.ock_files_dir
++                    if kext_name == "AMFIPass":
++                        # Never search across ordinary and Mod caches: both bundles
++                        # are named AMFIPass.kext and have the same bundle identifier.
++                        search_directory = os.path.join(self.ock_files_dir, kext_data.amfipass_product_name(self.kexts))
++                    elif kext_name == "WhateverXe":
++                        search_directory = os.path.join(self.ock_files_dir, "WhateverXe")
+                     if kext_name == "AirportItlwm-laobamac":
+                         search_directory = os.path.join(self.ock_files_dir, kext_name + macos_version[:2])
+                         kext_name = "AirportItlwm"
+@@ -478,12 +513,12 @@ class KextMaestro:
+                                     source_kext_path = os.path.join(search_directory, kext_path)
+                                     destination_kext_path = os.path.join(kexts_directory, os.path.basename(kext_path))
+                     
+-                    if kext.name in ("AirportItlwm-laobamac", "SimpleHDA") and not source_kext_path:
++                    if (kext.name in ("AirportItlwm-laobamac", "SimpleHDA", "WhateverXe") or has_xe and kext.name in ("Lilu", "AMFIPass")) and not source_kext_path:
+                         raise FileNotFoundError("Downloaded bundle not found for {}.".format(kext.name))
+                     if os.path.exists(source_kext_path):
+                         shutil.copytree(source_kext_path, destination_kext_path, dirs_exist_ok=True)
+                 except Exception:
+-                    if kext.name in ("AirportItlwm-laobamac", "SimpleHDA"):
++                    if kext.name in ("AirportItlwm-laobamac", "SimpleHDA", "WhateverXe") or has_xe and kext.name in ("Lilu", "AMFIPass"):
+                         raise
+                     continue
+ 
+diff --git a/docs/WhateverXe.md b/docs/WhateverXe.md
+new file mode 100644
+index 0000000..e2223b3
+--- /dev/null
++++ b/docs/WhateverXe.md
+@@ -0,0 +1,115 @@
++# Experimental Tiger Lake Iris Xe support
++
++This integration prepares an OpenCore EFI. It does not install the macOS graphics
++stack or establish that acceleration works on a particular laptop.
++
++## Scope and versions
++
++Only physical Intel PCI IDs `8086:9A40`, `9A49`, `9A60`, `9A68`, `9A70`, and `9A78`
++use this path. Other 9Axx devices, Rocket Lake, Alder Lake, and later Xe generations
++are not added by this change. WhateverXe accepts these six IDs automatically;
++no Ice Lake spoof or `AAPL,ig-platform-id` is generated. H45/GT1 devices
++`9A60/9A68/9A70` and 96-EU configurations still need upstream hardware validation.
++
++The EFI pins WhateverXe **0.5.0 RELEASE** and **AMFIPass 1.4.1 Mod**, with SHA-256
++checksums. Install **WhateverXe Graphics 0.2.0** in the target macOS separately.
++WEX and Graphics versions are independent.
++
++| macOS | Required version | Graphics 0.2.0 target build |
++| --- | --- | --- |
++| Big Sur | 11.7.11 | 20G1443 |
++| Monterey | 12.7.6 | 21H1320 |
++| Ventura | 13.7.8 | 22H730 |
++| Sonoma | 14.8.9 | 23J631 |
++| Sequoia | 15.8.x | 24H32 |
++| Tahoe | 26.7 or newer | 25G241 |
++
++OpCore-Simplify's compatibility range represents EFI eligibility, not every
++point release between Big Sur and Tahoe. Its version selector works with Darwin
++versions and cannot check the installed OS build identity. Big Sur through Sonoma
++require qualified kernel identities; Sequoia and Tahoe accept servicing updates
++within their families while retaining runtime instruction and ABI checks. Check
++the upstream documentation before choosing an installer or updating macOS.
++
++## What the generated EFI does
++
++- Selects Lilu, WhateverXe, and AMFIPass. WhateverXe shares the exclusive GPU
++  group with WhateverGreen, NootRX, and NootedRed. This also applies to mixed GPUs.
++- Uses the dedicated Mod archive from WhateverXe-Graphics, pinned to commit
++  `e83018e76c0f39f0f870ff38dcc304fb357c3485`. The bundle is still named
++  `AMFIPass.kext`; only one copy is installed and enabled.
++- Stores the Mod under `OCK_Files/AMFIPass-WhateverXe`, independently of ordinary
++  `OCK_Files/AMFIPass`. Switching modes cannot select the other cache by name.
++  Missing Xe/Lilu/Mod bundles stop the build; stale pinned downloads are not used
++  as a fallback after download failure.
++- Adds `-allow3d -disablegfxfirmware`, sets `csr-active-config` Data to
++  `03080000` (little-endian `0x803`), and schedules that variable for NVRAM deletion
++  so an old value can be replaced. Existing non-Xe SIP policy is unchanged.
++- Omits legacy WEG iGPU spoof and framebuffer defaults for these six IDs, even
++  if WhateverGreen is selected manually. No universal DVMT patch is guessed.
++
++The AMFIPass dependency name is retained for existing Wi-Fi/OCLP logic. Its
++download provider changes only while WhateverXe is selected. Ordinary upstream
++AMFIPass has a different trust anchor and cannot validate the Xe Mod payloads.
++The Windows-side checks do not verify macOS code signing or load kernel drivers.
++
++## Required steps on the target machine
++
++1. Keep a known working boot method and the recovery procedure available. Check
++   BIOS settings and the qualified OS build above. Prefer DVMT Pre-Allocated 96MB.
++2. Review `EFI/OC/config.plist`: Lilu before WhateverXe, one **Mod** AMFIPass,
++   no WhateverGreen/NootRX/NootedRed, correct SIP Data and both boot arguments.
++   Remove obsolete Xe iGPU `device-id`/`ig-platform-id` overrides from any merged
++   configuration. Reusing an older EFI can preserve unrelated properties.
++3. If an old Xe System/root patch exists, restore it using its original recovery
++   method before switching to the Graphics pkg route.
++4. Boot the target macOS with the generated EFI. Download Graphics **0.2.0** and
++   its checksum from the official Releases page. Verify the checksum, open the
++   pkg in Installer, and restart only after installation succeeds. The installer
++   puts drivers and AppleIntelTGLCompat under `/Library`, rebuilds AuxKC, and
++   applies the Tahoe CoreMedia setting. It does not set EFI, SIP, or boot arguments.
++   Never put the pkg or its driver payloads in `EFI/OC/Kexts`.
++5. Verify Metal, the internal display, brightness, external outputs, and wake on
++   the actual machine. Save logs if the graphics stack fails to start. The
++   generated setup file is not proof that Graphics pkg is installed.
++
++If DVMT is fixed at **60MB**, upstream documents `-igfxdvmt` plus iGPU Data
++properties `framebuffer-patch-enable=01000000` and
++`framebuffer-stolenmem=0000C003`. Add these only after confirming that firmware
++allocation; they do not increase it. Internal brightness also requires SSDT-PNLF.
++
++Automatic Xe builds that also require OCLP root patches stop with an explanatory
++error. This check runs after Wi-Fi/audio selection, so newly introduced root-patch
++requirements are caught too. Prefer itlwm or a suitable native AirportItlwm fork
++for Wi-Fi, and SimpleHDA where offered for Tahoe audio. Existing non-Xe OCLP
++selection continues to use ordinary AMFIPass.
++
++If other devices still require OCLP root patches, a manual integration needs the
++**b00t0x custom OCLP build** with the same Mod signing chain, including matching
++restoration payloads. Upstream OCLP payloads and Xe Mod payloads cannot both be
++validated by one ordinary AMFIPass. This integration does not replace or run
++OCLP, convert its payloads, or validate mixed root-patch configurations. Do not
++bypass the automatic-build guard by mixing upstream Wi-Fi payloads with the Mod.
++
++Mixed-GPU acceleration and routing are not configured by this Xe mode. An MX450
++remains unsupported; adding Xe support does not add an NVIDIA driver. Some
++DisplayPort/USB-C reconnections can freeze the system. Full sleep/wake, high
++resolutions, and every panel/backlight wiring are not validated. FairPlay is
++unsupported. Retain the official uninstall/recovery instructions for rollback.
++
++## Sources checked on 2026-10-25
++
++- [OpCore-Simplify baseline f0e1e441](https://github.com/lzhoang2801/OpCore-Simplify/tree/f0e1e441bb455c33e9695a9c9c50e8ca931d4de8)
++- [WhateverXe 0.5.0 README](https://github.com/b00t0x/WhateverXe/blob/0.5.0/README.md)
++- [WhateverXe device selection](https://github.com/b00t0x/WhateverXe/blob/0.5.0/docs/device-selection.md)
++- [WhateverXe 0.5.0 release](https://github.com/b00t0x/WhateverXe/releases/tag/0.5.0)
++- [Graphics requirements and install/removal](https://github.com/b00t0x/WhateverXe-Graphics/tree/e83018e76c0f39f0f870ff38dcc304fb357c3485)
++- [Graphics releases](https://github.com/b00t0x/WhateverXe-Graphics/releases)
++- [Custom OCLP](https://github.com/b00t0x/OpenCore-Legacy-Patcher)
++
++## Local verification
++
++Run `python -m unittest discover -s tests -v` and
++`python -m compileall -q Scripts OpCore-Simplify.py`. Tests use synthetic hardware
++and temporary directories inside the checkout; they do not scan the user's
++hardware, install software, change NVRAM, or execute macOS binaries.
+diff --git a/tests/test_whateverxe.py b/tests/test_whateverxe.py
+new file mode 100644
+index 0000000..3c08961
+--- /dev/null
++++ b/tests/test_whateverxe.py
+@@ -0,0 +1,231 @@
++import contextlib
++import copy
++import io
++import plistlib
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import Mock
++
++from Scripts import compatibility_checker, config_prodigy, gathering_files, kext_maestro, utils
++from Scripts.datasets import gpu_data, kext_data, pci_data
++
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def report(device="8086-9A49", manufacturer="Intel", codename="Tiger Lake", gpu_type="Integrated GPU"):
++    return {
++        "CPU": {"Manufacturer": "Intel", "Processor Name": "Intel Core i5-1135G7",
++                "Codename": "Tiger Lake-UP3", "SIMD Features": "SSE4.1 SSE4.2 AVX2",
++                "CPU Count": "1", "Core Count": "4"},
++        "Motherboard": {"Name": "Test Laptop", "Platform": "Laptop", "Chipset": "Tiger Lake"},
++        "GPU": {"GPU": {"Manufacturer": manufacturer, "Codename": codename,
++                        "Device ID": device, "Device Type": gpu_type,
++                        "PCI Path": "PciRoot(0x0)/Pci(0x2,0x0)"}},
++        "Input": {}, "USB Controllers": {}, "Network": {}, "Monitor": {},
++    }
++
++
++class WhateverXeTests(unittest.TestCase):
++    def setUp(self):
++        self.maestro = kext_maestro.KextMaestro()
++        self.maestro.kexts = copy.deepcopy(kext_data.kexts)
++        self.maestro.utils.head = Mock()
++        self.maestro.utils.request_input = Mock(side_effect=AssertionError("Unexpected interactive prompt"))
++        self.config = config_prodigy.ConfigProdigy.__new__(config_prodigy.ConfigProdigy)
++        self.config.utils = utils.Utils()
++        self.output = contextlib.redirect_stdout(io.StringIO())
++        self.output.__enter__()
++        self.addCleanup(self.output.__exit__, None, None, None)
++
++    def kext(self, name):
++        return self.maestro.kexts[kext_data.kext_index_by_name[name]]
++
++    def select(self, hardware=None, version="25.99.99", oclp=False):
++        return self.maestro.select_required_kexts(hardware or report(), version, oclp, [])
++
++    def compatibility(self, hardware):
++        checker = compatibility_checker.CompatibilityChecker()
++        checker.hardware_report = hardware
++        checker.ocl_patched_macos_version = None
++        checker.min_native_macos_version, checker.max_native_macos_version = "17.0.0", "25.99.99"
++        checker.utils.request_input = Mock(side_effect=AssertionError("Unexpected unsupported GPU"))
++        checker.check_gpu_compatibility()
++        return hardware["GPU"]["GPU"]
++
++    def test_all_six_physical_ids_are_eligible_without_oclp(self):
++        for device in gpu_data.TIGER_LAKE_XE_IDS:
++            with self.subTest(device=device):
++                gpu = self.compatibility(report("8086-" + device))
++                self.assertEqual(gpu["Compatibility"], ("25.99.99", "20.6.0"))
++                self.assertNotIn("OCLP Compatibility", gpu)
++
++    def test_id_scope_does_not_accept_whole_generation_or_wrong_vendor(self):
++        for device in ("8086-9A59", "8086-4680", "8086-46D0", "10DE-9A49", "8086-9A490"):
++            self.assertFalse(gpu_data.is_tiger_lake_xe({"Device ID": device}))
++        self.assertTrue(gpu_data.is_tiger_lake_xe({"Device ID": "8086:9a49"}))
++
++    def test_legacy_compatibility_ranges(self):
++        for device, maker, codename, expected in (
++            ("8086-5916", "Intel", "Kaby Lake", ("25.99.99", "17.0.0")),
++            ("8086-8A52", "Intel", "Ice Lake", ("25.99.99", "19.4.0")),
++            ("1002-67DF", "AMD", "Polaris 20", ("25.99.99", "17.0.0")),
++            ("10DE-0FC0", "NVIDIA", "Kepler", ("20.99.99", "17.0.0")),
++        ):
++            with self.subTest(device=device):
++                self.assertEqual(self.compatibility(report(device, maker, codename))["Compatibility"], expected)
++
++    def test_automatic_selection_and_dependencies_for_all_ids(self):
++        for device in gpu_data.TIGER_LAKE_XE_IDS:
++            with self.subTest(device=device):
++                self.assertFalse(self.select(report("8086-" + device)))
++                for name in ("Lilu", "AMFIPass", "WhateverXe"):
++                    self.assertTrue(self.kext(name).checked)
++                self.assertFalse(self.kext("WhateverGreen").checked)
++                self.assertEqual(kext_data.amfipass_product_name(self.maestro.kexts), "AMFIPass-WhateverXe")
++
++    def test_mixed_gpu_order_cannot_replace_whateverxe(self):
++        for reverse in (False, True):
++            hardware = report()
++            hardware["GPU"]["Navi"] = {"Device ID": "1002-73FF", "Manufacturer": "AMD",
++                                        "Codename": "Navi 23", "Device Type": "Discrete GPU"}
++            if reverse:
++                hardware["GPU"] = dict(reversed(list(hardware["GPU"].items())))
++            self.select(hardware)
++            self.assertTrue(self.kext("WhateverXe").checked)
++            self.assertFalse(self.kext("WhateverGreen").checked)
++            self.assertFalse(self.kext("NootRX").checked)
++
++    def test_automatic_mixed_oclp_chain_is_rejected(self):
++        hardware = report()
++        hardware["Network"]["WiFi"] = {"Device ID": pci_data.BroadcomWiFiIDs[0], "Bus Type": "PCI"}
++        with self.assertRaisesRegex(ValueError, "different AMFIPass trust anchors"):
++            self.select(hardware, oclp=True)
++        self.assertTrue(self.select(report("8086-8A52", codename="Ice Lake"), oclp=True))
++        self.assertTrue(self.kext("AMFIPass").checked)
++        self.assertEqual(kext_data.amfipass_product_name(self.maestro.kexts), "AMFIPass")
++
++    def test_conflict_group_and_mode_switch_back_to_ordinary_amfipass(self):
++        self.select()
++        self.assertTrue(self.maestro.check_kext(kext_data.kext_index_by_name["WhateverGreen"], "25.99.99"))
++        self.assertFalse(self.kext("WhateverXe").checked)
++
++        self.assertEqual(kext_data.amfipass_product_name(self.maestro.kexts), "AMFIPass")
++        self.select(report("8086-8A52", codename="Ice Lake"))
++        self.assertTrue(self.kext("WhateverGreen").checked)
++        self.assertFalse(self.kext("WhateverXe").checked)
++
++    def test_manual_kext_menu_cannot_bypass_oclp_guard(self):
++        self.select()
++        with self.assertRaisesRegex(ValueError, "matching custom Mod signing chain"):
++            self.config.genarate(report(), {}, "MacBookPro16,2", "25.99.99", True, self.maestro.kexts, {})
++
++    def test_os_bounds_cannot_be_force_loaded(self):
++        for version in ("19.6.0", "20.5.0", "26.0.0"):
++            with self.subTest(version=version):
++                self.kext("WhateverXe").checked = False
++                self.assertFalse(self.maestro.check_kext(kext_data.kext_index_by_name["WhateverXe"], version, True))
++                with self.assertRaises(ValueError):
++                    self.select(version=version)
++
++    def test_xe_boot_args_sip_and_device_properties(self):
++        self.select()
++        hardware = report()
++        args = self.config.boot_args(hardware, "25.99.99", False, self.maestro.kexts,
++                                     {"Booter": {"Quirks": {"ResizeAppleGpuBars": -1}}}).split()
++        for arg in ("-allow3d", "-disablegfxfirmware"):
++            self.assertEqual(args.count(arg), 1)
++        for arg in ("-igfxvesa", "amfi=0x80", "ipc_control_port_options=0"):
++            self.assertNotIn(arg, args)
++        self.assertEqual(self.config.csr_active_config("25.99.99", self.maestro.kexts), "03080000")
++        self.assertEqual(self.config.deviceproperties(hardware, {}, "25.99.99", self.maestro.kexts), {})
++        data = {"csr-active-config": bytes.fromhex(self.config.csr_active_config("25.99.99", self.maestro.kexts))}
++        self.assertEqual(plistlib.loads(plistlib.dumps(data))["csr-active-config"], b"\x03\x08\x00\x00")
++
++    def test_legacy_properties_still_generated_and_xe_guard_is_independent_of_kext(self):
++        self.assertEqual(self.config.igpu_properties("Laptop", ("Xe", report()["GPU"]["GPU"]), {}, "25.99.99"), {})
++        self.kext("WhateverGreen").checked = True
++        self.assertEqual(self.config.deviceproperties(report(), {}, "25.99.99", self.maestro.kexts), {})
++        properties = self.config.deviceproperties(report("8086-8A52", codename="Ice Lake"), {}, "25.99.99", self.maestro.kexts)
++        self.assertIn("AAPL,ig-platform-id", properties["PciRoot(0x0)/Pci(0x2,0x0)"])
++        self.assertEqual(self.config.csr_active_config("25.99.99", self.maestro.kexts), "030A0000")
++        self.assertEqual(self.config.csr_active_config("19.6.0"), "FF070000")
++        self.assertEqual(self.config.csr_active_config("17.0.0"), "FF030000")
++
++    def test_product_metadata_uses_dedicated_mod_source(self):
++        self.select()
++        gather = gathering_files.gatheringFiles.__new__(gathering_files.gatheringFiles)
++        gather.dortania_builds_url = "test-builds.json"
++        gather.fetcher = Mock()
++        gather.fetcher.fetch_and_parse_content.return_value = {
++            "OpenCorePkg": {"versions": [{"release": {"id": 1}, "links": {"release": "oc.zip"}, "hashes": {"release": {"sha256": "test"}}}]}
++        }
++        gather.github = Mock()
++        gather.github.get_latest_release.return_value = {"assets": []}
++        products = gather.fetch_latest_products_info(self.maestro.kexts, {"AMFIPass": {"url": "ordinary-cache"}})
++        mod = products["AMFIPass-WhateverXe"]
++        self.assertIn("/b00t0x/WhateverXe-Graphics/", mod["url"])
++        self.assertEqual(mod["sha256"], kext_data.AMFIPASS_MOD_DOWNLOAD["sha256"])
++        self.assertEqual(products["AMFIPass"]["url"], "ordinary-cache")
++        self.assertIn("/0.5.0/", products["WhateverXe"]["url"])
++
++    def write_bundle(self, cache, product, bundle, marker):
++        contents = cache / product / (bundle + ".kext") / "Contents"
++        contents.mkdir(parents=True)
++        (contents / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "test." + bundle}))
++        (contents / "marker.txt").write_text(marker)
++
++    def test_installer_never_uses_ordinary_cache_in_xe_mode_or_mod_in_legacy_mode(self):
++        with tempfile.TemporaryDirectory(prefix="xe-test-", dir=ROOT) as directory:
++            base = Path(directory)
++            cache, efi = base / "cache", base / "EFI"
++            self.maestro.ock_files_dir = str(cache)
++            for product, bundle, marker in (("AMFIPass", "AMFIPass", "ordinary"),
++                                           ("AMFIPass-WhateverXe", "AMFIPass", "mod"),
++                                           ("WhateverXe", "WhateverXe", "xe"), ("Lilu", "Lilu", "lilu")):
++                self.write_bundle(cache, product, bundle, marker)
++            for kext in self.maestro.kexts:
++                kext.checked = kext.name in ("Lilu", "AMFIPass", "WhateverXe")
++            self.maestro.install_kexts_to_efi("25.99.99", str(efi))
++            marker = efi / "AMFIPass.kext" / "Contents" / "marker.txt"
++            self.assertEqual(marker.read_text(), "mod")
++            self.kext("WhateverXe").checked = False
++            self.maestro.install_kexts_to_efi("25.99.99", str(efi))
++            self.assertEqual(marker.read_text(), "ordinary")
++
++    def test_missing_mod_stops_build_even_when_ordinary_cache_exists(self):
++        with tempfile.TemporaryDirectory(prefix="xe-test-", dir=ROOT) as directory:
++            cache = Path(directory) / "cache"
++            self.write_bundle(cache, "AMFIPass", "AMFIPass", "ordinary")
++            self.write_bundle(cache, "WhateverXe", "WhateverXe", "xe")
++            self.write_bundle(cache, "Lilu", "Lilu", "lilu")
++            self.maestro.ock_files_dir = str(cache)
++            for kext in self.maestro.kexts:
++                kext.checked = kext.name in ("Lilu", "AMFIPass", "WhateverXe")
++            with self.assertRaises(FileNotFoundError):
++                self.maestro.install_kexts_to_efi("25.99.99", str(Path(directory) / "EFI"))
++
++    def test_stale_mod_cache_cannot_be_used_after_download_failure(self):
++        with tempfile.TemporaryDirectory(prefix="xe-test-", dir=ROOT) as directory:
++            gather = gathering_files.gatheringFiles.__new__(gathering_files.gatheringFiles)
++            gather.utils = utils.Utils()
++            gather.utils.head = Mock()
++            gather.temporary_dir = str(Path(directory) / "tmp")
++            gather.ock_files_dir = str(Path(directory) / "cache")
++            product = kext_data.AMFIPASS_MOD_PRODUCT
++            old = {"id": "old-mod", "url": "ordinary.zip", "sha256": "old"}
++            gather._load_download_history = Mock(return_value={product: old})
++            gather.fetch_latest_products_info = Mock(return_value={product: kext_data.AMFIPASS_MOD_DOWNLOAD})
++            gather.integrity_checker = Mock()
++            gather.integrity_checker.verify_folder_integrity.return_value = (True, {})
++            gather.fetcher = Mock()
++            gather.fetcher.download_and_save_file.return_value = False
++            for kext in self.maestro.kexts:
++                kext.checked = kext.name in ("AMFIPass", "WhateverXe")
++            with self.assertRaisesRegex(Exception, "Could not download AMFIPass-WhateverXe"):
++                gather.gather_bootloader_kexts(self.maestro.kexts, "25.99.99")
++
++
++if __name__ == "__main__":
++    unittest.main()

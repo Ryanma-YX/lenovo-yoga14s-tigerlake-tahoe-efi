@@ -1,0 +1,108 @@
+{
+  "OpenCorePkg": {
+    "repository": "acidanthera/OpenCorePkg",
+    "ref": "1.0.8",
+    "url": "https://github.com/acidanthera/OpenCorePkg/blob/1.0.8/LICENSE.txt",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/OpenCorePkg-LICENSE.txt"
+  },
+  "OcBinaryData": {
+    "repository": "acidanthera/OcBinaryData",
+    "status": 404,
+    "note": "No license response; do not infer a license from another component."
+  },
+  "Lilu": {
+    "repository": "acidanthera/Lilu",
+    "ref": "c7a1cdab22bef97f4c334568113794aae14eb50f",
+    "url": "https://github.com/acidanthera/Lilu/blob/c7a1cdab22bef97f4c334568113794aae14eb50f/LICENSE.txt",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/Lilu-LICENSE.txt"
+  },
+  "VirtualSMC": {
+    "repository": "acidanthera/VirtualSMC",
+    "ref": "b5c62c2311540c529c00996d0d9cec33f8e571c9",
+    "url": "https://github.com/acidanthera/VirtualSMC/blob/b5c62c2311540c529c00996d0d9cec33f8e571c9/LICENSE.txt",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/VirtualSMC-LICENSE.txt"
+  },
+  "AppleALC": {
+    "repository": "acidanthera/AppleALC",
+    "ref": "ff01db21749271916d44605503499ceaa61d94b2",
+    "url": "https://github.com/acidanthera/AppleALC/blob/ff01db21749271916d44605503499ceaa61d94b2/LICENSE.txt",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/AppleALC-LICENSE.txt"
+  },
+  "BrcmPatchRAM": {
+    "repository": "acidanthera/BrcmPatchRAM",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/acidanthera/BrcmPatchRAM/blob/master/LICENSE",
+    "spdx": "GPL-2.0",
+    "notice": "licenses/BrcmPatchRAM-LICENSE"
+  },
+  "IntelBluetoothFirmware": {
+    "repository": "OpenIntelWireless/IntelBluetoothFirmware",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/OpenIntelWireless/IntelBluetoothFirmware/blob/master/LICENSE",
+    "spdx": "GPL-3.0",
+    "notice": "licenses/IntelBluetoothFirmware-LICENSE"
+  },
+  "AirportItlwm-Tahoe": {
+    "repository": "laobamac/itlwm",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/laobamac/itlwm/blob/main/LICENSE",
+    "spdx": "GPL-2.0",
+    "notice": "licenses/AirportItlwm-Tahoe-LICENSE"
+  },
+  "USBToolBox": {
+    "repository": "USBToolBox/kext",
+    "status": 404,
+    "note": "No license response; do not infer a license from another component."
+  },
+  "XHCI-unsupported": {
+    "repository": "RehabMan/OS-X-USB-Inject-All",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/RehabMan/OS-X-USB-Inject-All/blob/master/License.md",
+    "spdx": "NOASSERTION",
+    "notice": "licenses/XHCI-unsupported-License.md"
+  },
+  "VoodooPS2": {
+    "repository": "acidanthera/VoodooPS2",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/acidanthera/VoodooPS2/blob/master/LICENSE.md",
+    "spdx": "NOASSERTION",
+    "notice": "licenses/VoodooPS2-LICENSE.md"
+  },
+  "VoodooI2C": {
+    "repository": "VoodooI2C/VoodooI2C",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/VoodooI2C/VoodooI2C/blob/master/LICENSE.txt",
+    "spdx": "GPL-3.0",
+    "notice": "licenses/VoodooI2C-LICENSE.txt"
+  },
+  "NVMeFix": {
+    "repository": "acidanthera/NVMeFix",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/acidanthera/NVMeFix/blob/master/LICENSE.txt",
+    "spdx": "NOASSERTION",
+    "notice": "licenses/NVMeFix-LICENSE.txt"
+  },
+  "RestrictEvents": {
+    "repository": "acidanthera/RestrictEvents",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/acidanthera/RestrictEvents/blob/master/LICENSE.txt",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/RestrictEvents-LICENSE.txt"
+  },
+  "BrightnessKeys": {
+    "repository": "acidanthera/BrightnessKeys",
+    "ref": "default branch at archive time",
+    "url": "https://github.com/acidanthera/BrightnessKeys/blob/master/LICENSE",
+    "spdx": "BSD-3-Clause",
+    "notice": "licenses/BrightnessKeys-LICENSE"
+  },
+  "ECEnabler": {
+    "repository": "1Revenger1/ECEnabler",
+    "status": 404,
+    "note": "No license response; do not infer a license from another component."
+  }
+}

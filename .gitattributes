@@ -1,0 +1,13 @@
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.plist text eol=lf
+*.patch text eol=lf
+*.efi binary
+*.exe binary
+*.aml binary
+EFI/OC/Kexts/**/Contents/MacOS/* binary
+# Preserve all EFI payload bytes, including signed kext Info.plist files.
+EFI/** -text
+# Upstream notices are retained verbatim, including their original whitespace.
+licenses/** -text -whitespace

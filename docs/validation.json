@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "configs": {
+    "EFI/OC/config.plist": {
+      "activeKextEntries": 29,
+      "internalDependencyEdges": 26,
+      "acpiTables": 11
+    },
+    "profiles/config-basic-display.plist": {
+      "activeKextEntries": 29,
+      "internalDependencyEdges": 26,
+      "acpiTables": 11
+    }
+  },
+  "hashedFiles": 93,
+  "identityRedaction": "passed",
+  "fileReferences": "passed",
+  "amlChecksums": "passed",
+  "kextDependencyOrder": "passed",
+  "UEFIX64Architecture": "passed",
+  "physicalMilestone": "user-confirmed installer UI",
+  "completeInstallationVerified": false,
+  "graphicsAccelerationVerified": false,
+  "ocvalidate": "OpenCore 1.0.8: both configurations passed"
+}

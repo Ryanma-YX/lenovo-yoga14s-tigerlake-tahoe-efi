@@ -1,0 +1,16 @@
+/.venv/
+/build/
+/private/
+__pycache__/
+*.pyc
+identity*.json
+*private*.plist
+opencore-*.txt
+panic-*
+SysReport/
+*.dmg
+*.chunklist
+*.pkg
+*.zip
+.DS_Store
+Thumbs.db
