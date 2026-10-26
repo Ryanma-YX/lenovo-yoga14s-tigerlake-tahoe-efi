@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const {validate, findSerialDisks} = require('./mac_disk_guard.js');
+const {validate, findSerialDisks, findPartitionDisks, validateUSB} = require('./mac_disk_guard.js');
 const GiB = 1073741824;
 const plan = {disk:{serial:'TEST-SSD',bytes:512*GiB},
   esp:{guid:'aaaaaaaa-1111-1111-1111-111111111111',offset:1048576,bytes:256*1048576},
@@ -38,4 +38,35 @@ assert.throws(()=>validate(plan,recovery,'resized'));checks++;
 resized.parts[3].PartitionOffset=plan.protected.offset;
 assert.throws(()=>validate(plan,resized,'resized'));checks++;
 assert.deepEqual(findSerialDisks([{'USB Serial Number':'TEST-SSD',IORegistryEntryChildren:[{'BSD Name':'disk7'}]}],'TEST-SSD'),['disk7']);checks++;
+const gpt=structuredClone(good);
+for(const p of gpt.parts) {p.PartitionMapPartitionOffset=p.PartitionOffset;delete p.PartitionOffset;}
+gpt.apfs.Containers[0].CapacityFree=gpt.apfs.Containers[0].CapacityNotAllocated;
+delete gpt.apfs.Containers[0].CapacityNotAllocated;
+gpt.identityMethod='gpt-layout';gpt.serialDisks=[];
+gpt.candidates=[{whole:gpt.whole,parts:gpt.parts}];
+assert.equal(validate(plan,gpt,'initial').identityMethod,'gpt-layout');checks++;
+gpt.serialDisks=['disk0'];assert.throws(()=>validate(plan,gpt,'initial'));checks++;
+gpt.serialDisks=[];gpt.candidates.push(structuredClone(gpt.candidates[0]));
+assert.throws(()=>validate(plan,gpt,'initial'));checks++;
+gpt.candidates.pop();
+gpt.candidates[0].parts[0].DiskUUID='different';assert.throws(()=>validate(plan,gpt,'initial'));checks++;
+const usbPlan={disk:{bytes:60*GiB},esp:{guid:'eeeeeeee-5555-5555-5555-555555555555',offset:1048576,bytes:8*GiB},media:{offset:8*GiB+1048576,bytes:50*GiB}};
+const usb={whole:{Internal:false,TotalSize:60*GiB,DeviceIdentifier:'disk11'},parts:[
+  {DiskUUID:usbPlan.esp.guid,PartitionOffset:usbPlan.esp.offset,TotalSize:usbPlan.esp.bytes,Content:'EFI',ParentWholeDisk:'disk11',DeviceIdentifier:'disk11s1'},
+  {PartitionOffset:usbPlan.media.offset,TotalSize:usbPlan.media.bytes,Content:'Microsoft Basic Data',ParentWholeDisk:'disk11',DeviceIdentifier:'disk11s2'}]};
+assert.equal(validateUSB(usbPlan,usb,'disk7').usbMedia,'disk11s2');checks++;
+assert.equal(findPartitionDisks(usbPlan,[usb]).length,1);checks++;
+for(const mutate of [x=>x.whole.Internal=true,x=>x.whole.TotalSize--,x=>x.parts[1].PartitionOffset++,
+  x=>x.parts[0].DiskUUID='wrong',x=>x.parts[1].ParentWholeDisk='disk0',x=>x.parts.push(x.parts[1]),
+  x=>x.parts[0].Content='Apple_APFS']) {const x=structuredClone(usb);mutate(x);assert.throws(()=>validateUSB(usbPlan,x,'disk7'));checks++;}
+assert.throws(()=>validateUSB(usbPlan,usb,'disk11'));checks++;
+const external=structuredClone(good),externalPlan=structuredClone(plan);
+externalPlan.usb=usbPlan;external.usb=usb;
+external.apfs.Containers[0].CapacityNotAllocated=20*GiB;
+assert.equal(validate(externalPlan,external,'external-media').usbMedia,'disk11s2');checks++;
+external.root.APFSContainerReference='disk99';
+assert.throws(()=>validate(externalPlan,external,'external-media'));checks++;
+assert.equal(validate(externalPlan,external,'external-recovery').targetStore,'disk7s4');checks++;
+external.parts[2].TotalSize--;
+assert.throws(()=>validate(externalPlan,external,'external-recovery'));checks++;
 console.log(JSON.stringify({stage:'pure-JavaScript-fixtures',passed:checks,nativeJXATested:false,macosDiskMutationTested:false}));

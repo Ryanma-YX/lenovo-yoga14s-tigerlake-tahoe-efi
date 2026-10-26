@@ -12,7 +12,11 @@
     "privateMachineCopy": 3
   },
   "pythonTestsPassed": 6,
-  "javascriptFixtureChecksPassed": 18,
+  "javascriptFixtureChecksPassed": 36,
+  "standaloneUsbEfiOcvalidate": "passed",
+  "usbRouteBashSyntaxChecksPassed": 5,
+  "usbEraseAuthorized": true,
+  "usbNativeMediaCreationTested": false,
   "bashSyntax": "passed",
   "powershellSyntax": "passed",
   "efiAndGptBackupRoundtrip": "passed",
@@ -23,6 +27,7 @@
   "liveEfiConfigUnchanged": true,
   "apfsPartitionLayoutUnchanged": true,
   "macosJxaExecuted": false,
+  "macosJxaScope": "revised GPT/USB guard not yet run; original serial guard stopped at native serial association",
   "macosInstallerMediaCreated": false,
   "sequoiaInstalled": false,
   "metalValidated": false
