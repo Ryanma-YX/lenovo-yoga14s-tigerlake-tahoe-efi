@@ -6,7 +6,9 @@
 
 机主选择最终不保留 Tahoe，只使用其所在的原约 239GB 区域；原约 273GB APFS 数据分区和内部 Windows 分区不作分区、格式化或安装操作。网络只有 AX201 Wi-Fi。后续已提供 64GB SanDisk U 盘，并明确授权清空整只 U 盘；当前改用独立 USB 安装介质。
 
-采用完整本地安装器。保留 SanDisk 现有分区边界，在 Windows 格式化两个已授权分区：8GiB EFI 放完整 OpenCore 与准备工具，其余 NTFS 分区放完整 InstallAssistant.pkg。进入 Tahoe 后将安装 app 展开到本地，再只把 SanDisk 数据分区格式化为 HFS 并运行 Apple createinstallmedia。SSK 不缩容，准备期间其启动配置不变；从 SanDisk OpenCore 安装 Sequoia 后，再安装 Graphics 并给 SSK 配置启用加速。SanDisk 保持无加速恢复入口。旧的无额外介质/32GiB 缩容脚本保留供历史复现，当前不执行。
+采用独立 Recovery 和完整本地安装器，不再依赖频繁卡死的旧 Tahoe 桌面。保留 SanDisk 现有分区边界，8GiB FAT32 EFI 放完整 OpenCore、Apple 签名 BaseSystem 与工具，其余 exFAT 分区放完整 InstallAssistant.pkg。从 SanDisk 启动独立 Recovery 后，在指定 SSK 容器内将旧 Tahoe 系统卷组抹掉并新建 Sequoia 空卷，再由本地完整包展开匹配的 Sequoia 安装 app。SSK 不缩容，准备期间其启动配置不变。安装后再运行 Graphics/EFI 后处理，SanDisk 始终保留无加速入口。旧 createinstallmedia 和缩容工具保留供历史复现，当前不执行。
+
+独立 Recovery 宿主为 Sonoma 14.6.1 / 23G93，其 Apple RSA chunklist 和 76 个分块均已核验；宿主版本不等于安装目标版本。不要点击 Recovery 自带的“重新安装 macOS Sonoma”。`Recovery-Install.command` 使用完整 Sequoia 15.8.1 包中的安装 app，沿用 [corpnewt/UnPlugged](https://github.com/corpnewt/UnPlugged) 的 `pkgutil --expand-full` 与 SharedSupport 链接方法，没有复制或修改该项目的代码。该跨版本启动过程仍需原生实测。
 
 完整包无需在安装环境重新下载，但不能保证全流程断网：Apple 声明安装器仍可能联网获取机型/固件信息，AX201 在安装环境中的实际联网情况待验证。
 
@@ -29,7 +31,7 @@
 
 完整 InstallAssistant.pkg：15,664,523,626 字节，当前文件 SHA-256 为 `e4532e3337431292a7f227fcde7eb57f7b907547e2a26b43d3aab5a3f6e44781`。其 integrityDataV1 的 1,494 个 SHA-256 分块及清单自校验全部匹配。
 
-**校验边界：** catalog 的 Digest 对应 XAR 压缩目录的 SHA-1，不是整包 SHA-1；目录摘要及包内保存的摘要已一致通过。完整数据另按 integrityDataV1 分块验证。该清单为方法 2（清单校验和），不是 macOS 原生签名验证。macOS 准备脚本还必须通过 `pkgutil --check-signature` 和安装器 app 的 codesign 检查，随后才允许缩放目标区域。
+**校验边界：** catalog 的 Digest 对应 XAR 压缩目录的 SHA-1，不是整包 SHA-1；目录摘要及包内保存的摘要已一致通过。完整数据另按 integrityDataV1 分块验证。该清单为方法 2（清单校验和），不是 macOS 原生签名验证。Recovery 脚本检查本地包传输校验和，并要求 `pkgutil --check-signature` 和安装 app 的 codesign 检查通过后才启动安装 app。MD5 仅用于已由 Windows SHA-256 核验来源的 USB 传输读回，不作为 Apple 真实性依据。
 
 ## 工具
 
@@ -40,7 +42,9 @@
 - `prepare_efi.py`：从本机真实 EFI 生成独立副本，只增加 Darwin 24 Wi-Fi 条目和文件；输出无加速/加速两种配置，运行 ocvalidate。
 - `mac_disk_guard.js`：使用 macOS 自带 JXA，以已保存的三个 GPT 分区 UUID 的唯一组合识别 SSK，核对外接属性、磁盘容量、分区起点/大小及 APFS 物理存储。Windows 存储序列号不一定等于 macOS USB 桥序列号；缺失时不再作为唯一识别依据，若实际发现序列号冲突则停止。使用原生 `PartitionMapPartitionOffset`/`CapacityFree` 字段，并兼容旧 fixture 字段。外部介质模式还独立检查 USB 的 EFI UUID、容量与两个分区位置，不按固定磁盘编号操作。
 - `build_usb_delivery.py` / `Deploy-USB.ps1`：生成含真实身份的本地私有 USB 包；校验全部来源文件与完整安装包后，只格式化符合已授权 USB 序列号、容量、分区 GUID/位置/大小的两个分区并写入，逐文件复核哈希。完整私有包不加入 Git。
-- `Start-USB.command` / `Prepare-USB.command`：在现有 Tahoe 从 USB EFI 后台启动；本地签名、安装 app 校验通过后，只擦除独立 USB 的数据卷并制作完整介质。
+- `build_recovery_delivery.py` / `Deploy-Recovery.ps1`：从已签名的本地 Recovery 生成私有交付包；转换磁盘计划为 plist，在已识别 USB ESP 上逐文件写入并读回 SHA-256，不格式化或重分区。当前交付包的 `Start-USB.command` 已停用。
+- `recovery_disk_guard.sh` / `Recovery-Install.command`：用 Recovery 自带的 diskutil、PlistBuddy 与 Bash 核对 GPT 和 APFS，不依赖 Recovery 缺少的 osascript。映射原系统替换容器，拒绝受保护区变化、内置盘、容量/边界变化及多物理存储容器。安装启动器只接受替换容器内名为 Sequoia 的空 APFS 卷，本身不擦盘。
+- `Start-USB.command` / `Prepare-USB.command`：旧的 Tahoe 桌面 createinstallmedia 路线，当前不使用。
 - `Show-USB-Install-Target.command` / `Finish-Sequoia-USB.command` / `Set-SSD-USB-Profile.command`：不缩容路线的安装目标映射、Graphics 安装及 SSK 加速/无加速配置切换。USB 配置始终保留无加速。
 - `Prepare-Installer.command`：从当前 Tahoe 校验、准备完整安装器和临时安装分区；保留现有 Tahoe，随后添加 EFI 的 Sequoia Wi-Fi 支持。读取 Windows NTFS 上已下载的安装包；若无法读取，则使用当前 Tahoe Wi-Fi 下载同一 Apple 包。
 - `Show-Install-Target.command`：安装环境中的只读目标映射。通过 Disk Utility 擦除旧 Tahoe 的系统卷组这一步仍由机主在现场执行。
@@ -53,8 +57,8 @@
 
 Windows 已执行：完整安装器分块校验、Wi-Fi release 哈希校验、真实 EFI 的三份 ocvalidate、原 EFI 哈希检查、备份逻辑的模拟文件/解压恢复检查、JavaScript 安全边界 fixtures、Python 包校验 fixtures、Bash/PowerShell 语法检查。
 
-macOS JXA 实际 plist 解析、USB eraseVolume/createinstallmedia、Sequoia 安装、扩展批准、Metal/GPU 读回、登录与桌面稳定性均必须单独实测。原脚本在本机序列号关联处失败并停止；新的 GPT 识别与 USB 原生制作路径尚未执行，若返回字段或运行环境不符合假设，应保留错误并停止。
+Recovery Bash 守卫在 WSL 中运行了正常 GPT/APFS 路径和 8 项拒绝情形；该测试不代替 macOS 原生 diskutil 字段验证。Recovery 启动、原生 pkgutil/codesign、安装 app 跨版本启动、Sequoia 安装、扩展批准、Metal/GPU 读回及桌面稳定性仍需现场实测。原脚本在本机序列号关联处失败并停止；当前 GPT 守卫若遇实际返回字段不符合假设，仍应保留错误并停止。
 
-需要现场完成的动作：切回 Tahoe 运行准备脚本、选择 OpenCore 安装项、按只读映射擦除旧系统卷组和选择安装目标、必要时批准扩展。当前 Windows 会话不能把跨系统重启与这些安装界面操作标成已经自动完成。
+需要现场完成的动作：从 SanDisk OpenCore 进入独立 Recovery、按只读映射擦除旧系统卷组并选择安装目标、必要时批准扩展。当前 Windows 会话不能把跨系统重启与这些安装界面操作标成已经自动完成。详细的本机命令在本地私有准备目录 START-HERE.md，不包含在公开仓库。
 
 参考：[Apple 完整安装器](https://support.apple.com/en-us/102662)、[createinstallmedia](https://support.apple.com/en-us/101578)、[Apple chunklist 格式](https://github.com/apple-oss-distributions/xnu/blob/xnu-8020.101.4/bsd/kern/chunklist.h)、[Asahi 安装器的 diskutil 字段处理](https://github.com/AsahiLinux/asahi-installer/blob/main/src/diskutil.py)。

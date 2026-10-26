@@ -30,5 +30,17 @@
   "macosJxaScope": "revised GPT/USB guard not yet run; original serial guard stopped at native serial association",
   "macosInstallerMediaCreated": false,
   "sequoiaInstalled": false,
-  "metalValidated": false
+  "metalValidated": false,
+  "recoveryHost": "Sonoma 14.6.1 / 23G93",
+  "recoveryAppleRsaVerified": true,
+  "recoveryChunksVerified": 76,
+  "recoveryPkgutilExpandFullPresent": true,
+  "recoveryGuardFixtureCasesPassed": 9,
+  "recoveryGuardNativeTested": false,
+  "recoveryLauncherNativeTested": false,
+  "recoveryUSBDeployment": "120 files written and SHA-256 readback verified",
+  "fullUSBInstallerReadbackSha256": "passed",
+  "recoveryBootFilesPresent": true,
+  "usbEFIConfigOcvalidate": "passed",
+  "sskGptLayoutAfterRecoveryDeployment": "unchanged"
 }

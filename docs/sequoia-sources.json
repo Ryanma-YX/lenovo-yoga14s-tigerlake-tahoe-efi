@@ -58,5 +58,18 @@
     "physicalValidation": false
   },
   "appleInstallerIncludedInGit": false,
-  "realIdentityIncludedInGit": false
+  "realIdentityIncludedInGit": false,
+  "recoveryHost": {
+    "version": "14.6.1",
+    "build": "23G93",
+    "bytes": 789568598,
+    "sha256": "591f07a9a4a58d855a2e53b86a5f5da854a250000a66a9382adaf106c20f839b",
+    "appleRsaChunklistVerified": true,
+    "chunksVerified": 76,
+    "source": "Previously downloaded Apple Recovery, verified with unchanged OpenCorePkg macrecovery.py",
+    "verifier": "https://github.com/acidanthera/OpenCorePkg/blob/master/Utilities/macrecovery/macrecovery.py",
+    "launchApproachReference": "https://github.com/corpnewt/UnPlugged",
+    "thirdPartySourceCopied": false,
+    "installerAndRecoveryImagesIncludedInGit": false
+  }
 }
