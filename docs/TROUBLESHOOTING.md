@@ -1,5 +1,7 @@
 # EXITBS 排查记录
 
+后续 Sequoia 实机反馈：恢复 `ProvideCurrentCpuInfo=true`、`SetupVirtualMap=false`，保留 ExtraMsrs 和无 MAT 组合，仍能正常启动。桌面 3D 可用，App Store 视频 GPU 挂起及 VA 隔离结果见 [Sequoia 实测](SEQUOIA-RESULTS.md)。下表保留先前累计排错历史，不能据此认定旧值全部必要。
+
 ## 证据与结论分开
 
 | 阶段 | 可观察结果 | 能得出的结论 |

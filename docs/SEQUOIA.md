@@ -1,5 +1,7 @@
 # Sequoia 原生 Recovery 安装
 
+安装现已完成：Sequoia 15.8.1 / 24H32，外接 SSD 独立启动和桌面 3D 已确认。当前需要隔离 VA 插件规避 App Store 视频冻结，配置与证据见 [安装后实测](SEQUOIA-RESULTS.md)。下文保留恢复介质制作与安装路径，不代表需要重新安装。
+
 当前路线为 **SanDisk OpenCore → Apple Sequoia 原生 Recovery → Wi-Fi 联网安装**。现场操作见 [START-HERE.md](../START-HERE.md)，可用手机查看，不需要磁盘 GUID 或终端安装命令。
 
 此前的 Sonoma Recovery + 本地完整包展开路线已停用。旧 Tahoe 系统已经由机主擦除，安装时直接选择原约 239GB 区域中的空系统卷，不再要求擦除。原约 273GB 数据分区和内部 Windows 盘继续保留。

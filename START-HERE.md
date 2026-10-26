@@ -1,5 +1,7 @@
 # Sequoia 原生 Recovery 联网安装
 
+**本机已完成 Sequoia 15.8.1 安装。** 后续启动、3D 配置和 App Store 视频冻结的处理见 [Sequoia 实测](docs/SEQUOIA-RESULTS.md)。下文供重新制作或启动恢复介质时参考，已完成安装的系统不必重装。
+
 当前使用 Apple 原生 **Sequoia Recovery 15.6.1 / 24G90**，联网下载并安装系统。实际可安装版本以 Apple 安装界面为准。
 
 不需要运行 INSTALL.command，不需要挂载 SEQ-DATA，不需要输入磁盘 GUID。原 Tahoe 系统已经擦除，直接使用已准备的空系统卷，不再擦盘。

@@ -13,7 +13,7 @@ Each component remains subject to its upstream copyright and license. Available 
 | WhateverXe | https://github.com/b00t0x/WhateverXe |
 | AMFIPass Mod distribution | https://github.com/b00t0x/WhateverXe-Graphics |
 | AppleALC | https://github.com/acidanthera/AppleALC |
-| AirportItlwm Tahoe build | https://github.com/laobamac/itlwm |
+| AirportItlwm Tahoe / Sequoia builds | https://github.com/laobamac/itlwm |
 | SimpleHDA | https://github.com/laobamac/SimpleHDA |
 | BlueToolFixup | https://github.com/acidanthera/BrcmPatchRAM |
 | Intel Bluetooth drivers | https://github.com/OpenIntelWireless/IntelBluetoothFirmware |

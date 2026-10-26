@@ -1,5 +1,7 @@
 # 安装与个性化
 
+Sequoia 已完成安装，当前 profiles、带身份副本生成和 VA 隔离步骤见 [Sequoia 实测](SEQUOIA-RESULTS.md)。本页的主 EFI 与 Tahoe 图形故障描述保留为历史基线。
+
 ## 本仓库与实机原版的差别
 
 为避免在 Git 历史中留下机器身份，`EFI/OC/config.plist` 和基础显示配置的以下内容已经清除：

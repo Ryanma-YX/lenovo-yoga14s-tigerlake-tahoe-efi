@@ -1,14 +1,14 @@
-# Lenovo Yoga 14s · Tiger Lake · Tahoe EFI
+# Lenovo Yoga 14s · Tiger Lake · Tahoe / Sequoia EFI
 
 > 从 `EXITBS:START` 到安装完成、SSD 独立启动及触控板可用的实机 EFI 与排查笔记。
 
-本仓库归档联想 Yoga 14s 2021（82G2）、i5-1135G7、Iris Xe `8086:9A49` 的 OpenCore 配置。2026-10-26，已安装 macOS Tahoe 26.7.1，能通过外接 SSD 自带的 EFI 启动；机主确认定向 ACPI 修复后触控板正常。
+本仓库归档联想 Yoga 14s 2021（82G2）、i5-1135G7、Iris Xe `8086:9A49` 的 OpenCore 配置。2026-10-26 已完成 Sequoia 15.8.1 / 24H32 安装，外接 SSD 独立引导与桌面 3D 可用，触控板定向补丁保留。
 
-**触控板已实机确认可用；Metal 和桌面稳定性仍有问题。这不是一套已经完善的日用配置。** 主配置保留 `-wex-noaccel`，暂时禁用 GPU 加速；该模式下仍出现过 WindowServer 卡死。见 [显卡故障与后续方案](docs/GRAPHICS.md)。
+**Sequoia 的 App Store 视频会触发 GPU 挂起；隔离 VA 视频插件后机主确认可打开，并保留桌面 3D。** 硬件视频编解码及全部图形负载尚未验证稳定。当前结果和新配置见 [Sequoia 实测与恢复](docs/SEQUOIA-RESULTS.md)，脚本见 [视频工具](tools/graphics/README.md)。
 
-当前使用 [Sequoia 原生 Recovery 联网安装](docs/SEQUOIA.md)，保留原触控板和引导设置。恢复镜像已确认是 Sequoia 15.6.1 / 24G90，联网实际安装版本以 Apple 安装界面为准；尚无 Sequoia 安装或 Metal 实机成功结论，仓库主 EFI 仍是已归档的 Tahoe 基线。
+仓库主 `EFI/OC/config.plist` 保留 Tahoe 无加速历史基线；`profiles/config-sequoia-noaccel.plist` 和 `config-sequoia-accelerated.plist` 是新增的脱敏 Sequoia 配置。两者恢复 `ProvideCurrentCpuInfo=true`、`SetupVirtualMap=false` 后仍能启动，保留 ExtraMsrs 与无 MAT 组合。使用时选定 profile 并填回自己的原有身份。
 
-重启前请用手机打开[现场安装步骤](START-HERE.md)。进入原生 Recovery 后连接 Wi-Fi 并选择“重新安装 macOS Sequoia”，无需终端命令、挂载 SEQ-DATA 或输入磁盘 GUID。旧的离线安装入口已停用。
+需要重新安装时，参照[现场安装步骤](START-HERE.md)和 [Sequoia Recovery 记录](docs/SEQUOIA.md)。已安装完成的系统不需要再次进入恢复安装。旧的离线安装入口已停用。账户登录另见 [Apple Account 与网络身份](docs/APPLE-ACCOUNT.md)。
 
 仓库中的 EFI 从当前 SSD 实际启动文件同步，机器序列号、MLB、SystemUUID、ROM 与蓝牙控制器缓存已脱敏。恢复镜像、Graphics 安装包、原始硬件报告和完整启动日志不在仓库里。最初的 DEBUG 安装介质版本保留在 Git 历史中。
 
@@ -21,18 +21,20 @@
 | CPU | i5-1135G7，4 核 8 线程，Tiger Lake-UP3 |
 | 内存 | 16GB |
 | 核显 | Intel Iris Xe，`8086:9A49` |
-| 内屏 | 2880×1800；正常启动日志记录该模式，背光行为待验证 |
+| 内屏 | Sequoia 日志为 2880×1800 / 90Hz、30-bit；背光行为待验证 |
 | 无线 | Intel AX201；实际联网稳定性待验证 |
 | 音频 | ALC287；音频、麦克风待验证 |
 | SMBIOS | `MacBookPro16,2` |
 | 引导器 | OpenCore 1.0.8 **RELEASE**，OpenCore 调试文件输出已关闭 |
-| 已装系统 | Tahoe 26.7.1 / 25G241；Darwin 25.6.0 |
+| 已装系统 | Sequoia 15.8.1 / 24H32；先前 Tahoe 为历史对照 |
 | 触控板 | ELAN HID-over-I2C，I2C1.TPD0；定向补丁后机主确认正常 |
 | DVMT | 当前物理预分配 64MiB，未改 BIOS 为 96MiB |
-| 已确认 | 安装完成、进入桌面、外接 SSD 独立启动、触控板可用 |
-| 未解决 / 待验证 | Metal 编译失败、WindowServer 卡死、USB 全端口、睡眠及各外设 |
+| 已确认 | 安装、外接 SSD 独立启动、触控板、桌面 3D，以及隔离 VA 后 App Store 可打开 |
+| 未解决 / 待验证 | VA 视频路径 GPU 挂起、全部图形负载、Apple Account、USB 全端口、睡眠及各外设 |
 
-## 最终保留的关键设置
+## Tahoe 历史基线的关键设置
+
+以下表格对应保留的主 EFI。当前 Sequoia profiles 的两项恢复与使用边界见 [Sequoia 实测](docs/SEQUOIA-RESULTS.md)。
 
 | 路径 | 值 | 依据 |
 | --- | --- | --- |
@@ -73,13 +75,14 @@
 8. 完成 Tahoe 26.7.1 安装，将 EFI 迁移到外接 SSD，并换成匹配的一套 OpenCore 1.0.8 RELEASE 文件，不再依赖另插安装 U 盘。
 9. 安装 WhateverXe Graphics 0.2.0 并允许扩展后出现登录黑屏。11 份 WindowServer 报告均指向编译适配器拒绝 bitcode。安全模式能进入桌面；随后使用 `-wex-noaccel` 能正常登录，但仍有 WATCHDOG 卡死。
 10. 正常启动日志显示 I2C 控制器已加载、触控板 TPD0 未枚举。新增本机限定的 `SSDT-YTPD`，保留原资源方法并修正 macOS 下的设备状态与 ELAN 参数，机主确认触控板正常。
+11. 改用 Sequoia 15.8.1，完成外接 SSD EFI 迁移和 3D 启用；恢复两个早期选项后仍可启动。App Store 视频触发 GPU Reset，隔离完整 VA 插件后可用，硬解问题尚未修复。
 
 更多细节见 [排查记录](docs/TROUBLESHOOTING.md)。
 
 ## 使用与恢复
 
 1. 下载仓库，先阅读 [安装与个性化](docs/INSTALL.md)。
-2. 将自己的 SMBIOS 身份填回副本。可用 `tools/personalize.py` 从自己的原始配置生成独立的 `build/EFI`；身份不会写回仓库模板。
+2. 将自己的 SMBIOS 身份填回副本。可用 `tools/personalize.py` 从自己的原始配置生成独立的 `build/EFI`；Sequoia 可选 `--profile sequoia-noaccel` 或 `--profile sequoia-accelerated`，身份不会写回仓库模板。
 3. 使用本仓库的检查脚本与同版本 ocvalidate 验证，再将生成的 `EFI` 目录放到目标启动分区根目录。
 4. BIOS 采用 UEFI 引导并关闭固件 Secure Boot；这与 OpenCore 内的 `SecureBootModel` 是两项设置。
 5. 进入 OpenCore，选择恢复镜像的 `(dmg)` 项。安装重启时，选择目标 SSD 上的 `macOS Installer` / 系统项继续。
@@ -92,11 +95,13 @@
 
 ## Xe 图形加速的边界
 
+当前 Sequoia 已报告 Metal 2，机主确认桌面 3D；VA 插件隔离是 App Store 冻结的规避方法，非硬解修复。以下为此前 Tahoe 归档的边界，不能混为当前 Sequoia 的同一故障。
+
 已包含 WhateverXe 0.5.0 和专用 AMFIPass 1.4.1 Mod，SIP Data 为 `03080000`。没有同时启用 WhateverGreen，也没有传统 iGPU `ig-platform-id/device-id` 伪装。
 
 按 [WhateverXe 0.5.0 说明](https://github.com/b00t0x/WhateverXe/blob/0.5.0/README.md)，Graphics 0.2.0 的 Tahoe 条件为 **26.7 或更新版本**。当前系统 26.7.1 已满足该版本条件，但实机仍出现 shader 编译失败；版本满足不等于功能已经正常。Graphics pkg 安装在 macOS 的 `/Library` 下，不属于 EFI 文件，单纯换 EFI 不能重建编译适配器。
 
-当前保留 `-wex-noaccel` 作为诊断退路，尚未恢复可稳定使用的 Metal。DVMT 64MiB 是已读出的实际值；增加到上游建议的 96MiB 可以作为 BIOS 提供选项时的对照，但没有证据表明它能解决本次 bitcode 拒绝。
+Tahoe 主配置保留 `-wex-noaccel` 作为诊断退路；Sequoia 同时提供无加速和加速 profile。DVMT 64MiB 是已读出的实际值；没有证据表明改动它能解决已有 bitcode 或视频挂起问题。
 
 USB 当前采用 `USBToolBox + UTBDefault`，仍是映射前的通用组合，不宣称已经完成本机 USB 定制。
 
@@ -108,7 +113,7 @@ USB 当前采用 `USBToolBox + UTBDefault`，仍是映射前的通用组合，�
 python tools/validate_efi.py
 ```
 
-包含 plist 重复键、文件引用、ACPI 校验和、活动 kext 标识唯一性与依赖顺序、x86_64 EFI 架构、脱敏字段、SHA-256，以及 OpenCore 1.0.8 `ocvalidate.exe` 的检查。结果保存在 [验证记录](docs/validation.json)。触控板另做了本机 AML 解释器验证及机主实机确认；这些记录不代表显卡或整机稳定性通过。
+包含四份配置的 plist、文件引用、ACPI 校验和、对应 Darwin 版本的活动 kext 唯一性与依赖、x86_64 EFI、脱敏字段、SHA-256 及 OpenCore 1.0.8 ocvalidate 检查。结果保存在 [验证记录](docs/validation.json)。静态校验与机主反馈分别记录，不代表整机稳定性通过。
 
 ## 来源与致谢
 

@@ -23,7 +23,7 @@ def inside(base, relative):
     return path
 
 
-def check_config(path):
+def check_config(path, kernel_major=25, expected_cpu_info=False):
     xml = ET.fromstring(path.read_bytes())
     for node in xml.iter('dict'):
         keys = [child.text for child in node if child.tag == 'key']
@@ -43,7 +43,11 @@ def check_config(path):
         info = plistlib.loads(inside(bundle, entry['PlistPath']).read_bytes())
         if entry['ExecutablePath']:
             require(inside(bundle, entry['ExecutablePath']).is_file(), 'Missing kext executable')
-        active.append((i, info['CFBundleIdentifier'], info.get('OSBundleLibraries', {})))
+        kernel = (kernel_major, 0, 0)
+        minimum = tuple(map(int, entry['MinKernel'].split('.'))) if entry['MinKernel'] else (0, 0, 0)
+        maximum = tuple(map(int, entry['MaxKernel'].split('.'))) if entry['MaxKernel'] else (999, 99, 99)
+        if minimum <= kernel <= maximum:
+            active.append((i, info['CFBundleIdentifier'], info.get('OSBundleLibraries', {})))
     positions = {identifier: i for i, identifier, _ in active}
     require(len(positions) == len(active), 'Duplicate active kext bundle identifier')
     edges = 0
@@ -70,10 +74,11 @@ def check_config(path):
         require(not any(nvram[key]), 'Machine Bluetooth cache present')
     require(nvram['csr-active-config'] == bytes.fromhex('03080000'), 'Unexpected SIP Data')
     require(config['Kernel']['Quirks']['AppleXcpmExtraMsrs'], 'XCPM workaround is disabled')
-    require(not config['Kernel']['Quirks']['ProvideCurrentCpuInfo'], 'Unexpected topology override')
+    require(config['Kernel']['Quirks']['ProvideCurrentCpuInfo'] == expected_cpu_info,
+            'CPU information setting differs from the archived profile')
     require(not any('WhateverGreen' in entry['BundlePath'] for entry in config['Kernel']['Add'] if entry['Enabled']),
             'WhateverGreen conflicts with WhateverXe')
-    return {'activeKextEntries': len(active), 'internalDependencyEdges': edges,
+    return {'darwinMajor': kernel_major, 'activeKextEntries': len(active), 'internalDependencyEdges': edges,
             'acpiTables': sum(entry['Enabled'] for entry in config['ACPI']['Add'])}
 
 
@@ -82,8 +87,12 @@ def main():
     parser.add_argument('--report', type=Path)
     args = parser.parse_args()
     results = {}
-    for relative in ['EFI/OC/config.plist', 'profiles/config-basic-display.plist']:
-        results[relative] = check_config(ROOT / relative)
+    configs = [('EFI/OC/config.plist', 25, False),
+               ('profiles/config-basic-display.plist', 25, False),
+               ('profiles/config-sequoia-noaccel.plist', 24, True),
+               ('profiles/config-sequoia-accelerated.plist', 24, True)]
+    for relative, kernel_major, expected_cpu_info in configs:
+        results[relative] = check_config(ROOT / relative, kernel_major, expected_cpu_info)
     expected = json.loads((ROOT / 'docs/efi-sha256.json').read_text())
     for relative, digest in expected.items():
         require(hashlib.sha256(inside(ROOT, relative).read_bytes()).hexdigest() == digest,
@@ -96,19 +105,21 @@ def main():
               'physicalEvidenceSource': 'recorded user feedback; this command does not test hardware',
               **{key: hardware[key] for key in ['completeInstallationVerified',
                  'independentSSDBootVerified', 'trackpadVerified',
-                 'desktopStabilityVerified', 'graphicsAccelerationVerified']}}
+                 'desktopStabilityVerified', 'graphicsAccelerationVerified',
+                 'graphicsVerificationScope', 'hardwareVideoAccelerationVerified',
+                 'vaPluginIsolated', 'appStoreFreezeWorkaroundVerified']}}
     if os.name == 'nt':
         for relative in results:
             result = subprocess.run([str(ROOT / 'tools/ocvalidate.exe'), str(ROOT / relative)],
                                     capture_output=True, check=False)
             require(result.returncode == 0, result.stdout.decode('utf8', 'replace'))
-        report['ocvalidate'] = 'OpenCore 1.0.8: both configurations passed'
+        report['ocvalidate'] = 'OpenCore 1.0.8: all four configurations passed'
     else:
         report['ocvalidate'] = 'not run: bundled validator is for Windows'
     output = json.dumps(report, indent=2)
     print(output)
     if args.report:
-        args.report.write_text(output + '\n', encoding='utf8')
+        args.report.write_bytes((output + '\n').encode('utf8'))
 
 
 if __name__ == '__main__':

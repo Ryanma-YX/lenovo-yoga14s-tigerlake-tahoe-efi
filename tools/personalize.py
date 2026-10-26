@@ -15,6 +15,8 @@ GUID = '7C436110-AB2A-4BBB-A880-FE41995C9F82'
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--from-config', required=True, type=Path)
+    parser.add_argument('--profile', choices=['tahoe', 'sequoia-noaccel', 'sequoia-accelerated'],
+                        default='tahoe', help='Configuration to place in the generated EFI')
     args = parser.parse_args()
     source = plistlib.loads(args.from_config.read_bytes())
     identity = source['PlatformInfo']['Generic']
@@ -29,7 +31,9 @@ def main():
     output = ROOT / 'build/EFI'
     if output.exists():
         raise ValueError('build/EFI already exists; choose a separate checkout to avoid overwriting it')
-    template = plistlib.loads((ROOT / 'EFI/OC/config.plist').read_bytes())
+    template_path = ROOT / ('EFI/OC/config.plist' if args.profile == 'tahoe'
+                            else 'profiles/config-' + args.profile + '.plist')
+    template = plistlib.loads(template_path.read_bytes())
     config = copy.deepcopy(template)
     for key in ['MLB', 'ROM', 'SystemSerialNumber', 'SystemUUID']:
         config['PlatformInfo']['Generic'][key] = identity[key]

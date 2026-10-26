@@ -2,28 +2,46 @@
   "status": "passed",
   "configs": {
     "EFI/OC/config.plist": {
+      "darwinMajor": 25,
       "activeKextEntries": 29,
       "internalDependencyEdges": 26,
       "acpiTables": 12
     },
     "profiles/config-basic-display.plist": {
+      "darwinMajor": 25,
       "activeKextEntries": 29,
       "internalDependencyEdges": 26,
       "acpiTables": 12
+    },
+    "profiles/config-sequoia-noaccel.plist": {
+      "darwinMajor": 24,
+      "activeKextEntries": 28,
+      "internalDependencyEdges": 25,
+      "acpiTables": 12
+    },
+    "profiles/config-sequoia-accelerated.plist": {
+      "darwinMajor": 24,
+      "activeKextEntries": 28,
+      "internalDependencyEdges": 25,
+      "acpiTables": 12
     }
   },
-  "hashedFiles": 95,
+  "hashedFiles": 99,
   "identityRedaction": "passed",
   "fileReferences": "passed",
   "amlChecksums": "passed",
   "kextDependencyOrder": "passed",
   "UEFIX64Architecture": "passed",
-  "physicalMilestone": "User confirmed installed macOS, independent external-SSD boot, and working trackpad on 2026-10-26",
+  "physicalMilestone": "Owner confirmed Sequoia installation, independent external-SSD boot, restored EFI options, desktop 3D, and App Store working with VA plugin isolated on 2026-10-26",
   "physicalEvidenceSource": "recorded user feedback; this command does not test hardware",
   "completeInstallationVerified": true,
   "independentSSDBootVerified": true,
   "trackpadVerified": true,
   "desktopStabilityVerified": false,
-  "graphicsAccelerationVerified": false,
-  "ocvalidate": "OpenCore 1.0.8: both configurations passed"
+  "graphicsAccelerationVerified": true,
+  "graphicsVerificationScope": "Metal 2 reported and owner-observed desktop 3D; not full workload validation",
+  "hardwareVideoAccelerationVerified": false,
+  "vaPluginIsolated": true,
+  "appStoreFreezeWorkaroundVerified": true,
+  "ocvalidate": "OpenCore 1.0.8: all four configurations passed"
 }
