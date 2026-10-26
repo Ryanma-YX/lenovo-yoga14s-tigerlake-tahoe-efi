@@ -59,7 +59,19 @@
   },
   "appleInstallerIncludedInGit": false,
   "realIdentityIncludedInGit": false,
-  "recoveryHost": {
+  "activeRoute": "native Sequoia Recovery online installation",
+  "nativeSequoiaRecovery": {
+    "product": "093-10615",
+    "url": "http://oscdn.apple.com/content/downloads/52/42/093-10615/f1wx7fb81oy1x1l3d5kjfce2iurbhw9qbk/RecoveryImage/BaseSystem.dmg",
+    "bytes": 888615275,
+    "sha256": "c9fff24b410ae134c6be17ebd4194e0ad3d73bb839a65f8d94c93a20fe97cd1e",
+    "appleRsaVerified": true,
+    "chunksVerified": 85,
+    "nativeBootTested": false,
+    "version": "15.6.1",
+    "build": "24G90"
+  },
+  "historicalRecoveryHost": {
     "version": "14.6.1",
     "build": "23G93",
     "bytes": 789568598,
