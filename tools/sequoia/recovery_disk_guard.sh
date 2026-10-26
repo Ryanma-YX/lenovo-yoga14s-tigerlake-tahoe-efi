@@ -8,8 +8,30 @@ field() { /usr/libexec/PlistBuddy -c "Print :$2" "$1" 2>/dev/null; }
 fail() { echo "STOP: $*" >&2; exit 1; }
 norm() { printf '%s' "$1" | /usr/bin/tr '[:upper:]' '[:lower:]' | /usr/bin/tr -d '{}-'; }
 info() { /usr/sbin/diskutil info -plist "$1" > "$2"; }
+device_bytes() {
+    # Use diskutil list's partition-map Size, never a filesystem's TotalSize.
+    # Unmounted filesystems may report zero volume capacity.
+    local wanted=$1 a=0 b disk part size found='' hits=0
+    while disk=$(field "$GUARD_WORK/list.plist" "AllDisksAndPartitions:$a:DeviceIdentifier"); do
+        if [[ "$disk" == "$wanted" ]]; then
+            found=$(field "$GUARD_WORK/list.plist" "AllDisksAndPartitions:$a:Size")
+            hits=$((hits+1))
+        fi
+        b=0
+        while part=$(field "$GUARD_WORK/list.plist" "AllDisksAndPartitions:$a:Partitions:$b:DeviceIdentifier"); do
+            if [[ "$part" == "$wanted" ]]; then
+                found=$(field "$GUARD_WORK/list.plist" "AllDisksAndPartitions:$a:Partitions:$b:Size")
+                hits=$((hits+1))
+            fi
+            b=$((b+1))
+        done
+        a=$((a+1))
+    done
+    [[ $hits -eq 1 && "$found" =~ ^[0-9]+$ ]] || fail "missing or ambiguous partition-map size for $wanted"
+    printf '%s' "$found"
+}
 find_partition() {
-    local spec=$1 wanted candidate id i=0 hits=0 found=''
+    local spec=$1 wanted candidate id i=0 hits=0 found='' actual expected
     wanted=$(norm "$(field "$PLAN" "$spec:guid")")
     while id=$(field "$GUARD_WORK/list.plist" "AllDisks:$i"); do
         i=$((i+1))
@@ -17,7 +39,9 @@ find_partition() {
         candidate="$GUARD_WORK/$id.plist"
         info "/dev/$id" "$candidate"
         [[ "$(norm "$(field "$candidate" DiskUUID || true)")" == "$wanted" ]] || continue
-        [[ "$(field "$candidate" TotalSize)" == "$(field "$PLAN" "$spec:bytes")" ]] || fail "$spec size changed"
+        actual=$(device_bytes "$id")
+        expected=$(field "$PLAN" "$spec:bytes")
+        [[ "$actual" == "$expected" ]] || fail "$spec partition size changed: expected $expected, observed $actual bytes"
         [[ "$(field "$candidate" PartitionMapPartitionOffset)" == "$(field "$PLAN" "$spec:offset")" ]] || fail "$spec offset changed"
         hits=$((hits+1)); found=$id
     done
@@ -29,7 +53,7 @@ check_whole() {
     [[ "$disk" =~ ^disk[0-9]+$ ]] || fail 'invalid physical disk'
     info "/dev/$disk" "$GUARD_WORK/$disk.plist"
     [[ "$(field "$GUARD_WORK/$disk.plist" Internal)" == false ]] || fail 'disk is not external'
-    [[ "$(field "$GUARD_WORK/$disk.plist" TotalSize)" == "$(field "$PLAN" "$spec:bytes")" ]] || fail 'physical capacity changed'
+    [[ "$(device_bytes "$disk")" == "$(field "$PLAN" "$spec:bytes")" ]] || fail 'physical capacity changed'
 }
 /usr/sbin/diskutil list -plist > "$GUARD_WORK/list.plist"
 SSD_ESP=$(find_partition esp)

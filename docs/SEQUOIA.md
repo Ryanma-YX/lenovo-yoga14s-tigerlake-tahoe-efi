@@ -57,7 +57,7 @@
 
 Windows 已执行：完整安装器分块校验、Wi-Fi release 哈希校验、真实 EFI 的三份 ocvalidate、原 EFI 哈希检查、备份逻辑的模拟文件/解压恢复检查、JavaScript 安全边界 fixtures、Python 包校验 fixtures、Bash/PowerShell 语法检查。
 
-Recovery Bash 守卫在 WSL 中运行了正常 GPT/APFS 路径和 8 项拒绝情形；该测试不代替 macOS 原生 diskutil 字段验证。Recovery 启动、原生 pkgutil/codesign、安装 app 跨版本启动、Sequoia 安装、扩展批准、Metal/GPU 读回及桌面稳定性仍需现场实测。原脚本在本机序列号关联处失败并停止；当前 GPT 守卫若遇实际返回字段不符合假设，仍应保留错误并停止。
+Recovery Bash 守卫使用 `diskutil list -plist` 的 `AllDisksAndPartitions` / `Partitions` / `Size` 校验物理盘与分区容量，不使用卷的 `TotalSize`：未挂载文件系统的卷容量可以为零，已挂载文件系统容量也可能小于分区。对应 WSL fixtures 覆盖正常 GPT/APFS、未挂载卷容量为零、卷容量与分区不同及实际分区大小变化；该测试不代替 macOS 原生字段验证。原生 pkgutil/codesign、安装 app 跨版本启动、Sequoia 安装、扩展批准、Metal/GPU 读回及桌面稳定性仍需现场实测。守卫若遇实际返回字段不符合假设，应保留错误并停止；仅更新 GitHub 不会同步 U 盘上的脚本。
 
 需要现场完成的动作：从 SanDisk OpenCore 进入独立 Recovery、按只读映射擦除旧系统卷组并选择安装目标、必要时批准扩展。当前 Windows 会话不能把跨系统重启与这些安装界面操作标成已经自动完成。[现场步骤](../START-HERE.md)可从手机查看，也随工具复制到 U 盘数据分区。短入口 `INSTALL.command` 自动读取私有计划，不需要用户输入 GUID；真实身份和磁盘计划仍不加入 Git。
 

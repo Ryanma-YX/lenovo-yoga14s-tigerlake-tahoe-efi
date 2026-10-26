@@ -35,6 +35,14 @@ bash /Volumes/SEQ-DATA/INSTALL.command
 
 ## 3. 清空旧系统并启动 Sequoia 安装器
 
+先确认数据卷已经挂载且完整包可读：
+
+```bash
+ls -lh /Volumes/SEQ-DATA/InstallAssistant.pkg
+```
+
+如果数据卷挂载失败、找不到安装包，或目标映射出现 STOP，先停止，不要抹旧系统。未挂载卷显示的 `Volume Total Space: 0` 不能当成分区实际大小；容量检查已改为读取分区表中的大小。GitHub 更新不会自动更新已制作的 U 盘脚本。
+
 打开磁盘工具，选择“显示所有设备”。仅在脚本标出的替换容器内，选中旧 Tahoe 系统卷，使用“抹掉卷宗组”，命名 **Sequoia**、格式 **APFS**。
 
 保留约 273GB 数据分区和内部 Windows 盘。不要抹整个 SSK、整个 APFS 容器或 SanDisk U 盘。

@@ -35,12 +35,15 @@
   "recoveryAppleRsaVerified": true,
   "recoveryChunksVerified": 76,
   "recoveryPkgutilExpandFullPresent": true,
-  "recoveryGuardFixtureCasesPassed": 9,
+  "recoveryGuardFixtureCasesPassed": 12,
   "recoveryGuardNativeTested": false,
   "recoveryLauncherNativeTested": false,
   "recoveryUSBDeployment": "120 files written and SHA-256 readback verified",
   "fullUSBInstallerReadbackSha256": "passed",
   "recoveryBootFilesPresent": true,
   "usbEFIConfigOcvalidate": "passed",
-  "sskGptLayoutAfterRecoveryDeployment": "unchanged"
+  "sskGptLayoutAfterRecoveryDeployment": "unchanged",
+  "recoveryGuardCapacitySource": "diskutil list -plist partition-map Size, not filesystem TotalSize",
+  "recoveryGuardRegression": "unmounted capacity 0 and smaller mounted filesystem accepted; actual partition size mismatch rejected",
+  "usbGuardUpdateAfterCapacityFix": "pending; GitHub update does not update deployed USB"
 }
