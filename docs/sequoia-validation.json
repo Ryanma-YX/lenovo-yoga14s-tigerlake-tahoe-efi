@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-26",
+  "stage": "Windows preparation only",
+  "installerVersion": "15.8.1",
+  "installerBuild": "24H32",
+  "appleIntegrityChunksPassed": 1494,
+  "appleCatalogXarDigest": "passed",
+  "xarRsaAndCertificateChainMath": "passed against Apple-published root; native policy/revocation not evaluated",
+  "wifiReleaseSha256": "passed",
+  "efiProfilesOcvalidate": {
+    "template": 3,
+    "privateMachineCopy": 3
+  },
+  "pythonTestsPassed": 6,
+  "javascriptFixtureChecksPassed": 18,
+  "bashSyntax": "passed",
+  "powershellSyntax": "passed",
+  "efiAndGptBackupRoundtrip": "passed",
+  "tahoeSystemImageRequired": false,
+  "largeTahoeImagesConfirmedAbsent": true,
+  "bootstrapCopiedToExternalEsp": true,
+  "bootstrapFiles": 19,
+  "liveEfiConfigUnchanged": true,
+  "apfsPartitionLayoutUnchanged": true,
+  "macosJxaExecuted": false,
+  "macosInstallerMediaCreated": false,
+  "sequoiaInstalled": false,
+  "metalValidated": false
+}

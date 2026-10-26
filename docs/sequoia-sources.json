@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-26",
+  "installer": {
+    "product": "142-27431",
+    "version": "15.8.1",
+    "build": "24H32",
+    "package": {
+      "Digest": "5edb8d574af56ff56cffc27160d4c998166b5882",
+      "Size": 15664523626,
+      "IntegrityDataURL": "https://swcdn.apple.com/content/downloads/07/04/142-27431-A_VX0FXASAKC/m7trj81qnvp94e9nzr06e7qi9lqey7cwmu/InstallAssistant.pkg.integrityDataV1",
+      "MetadataURL": "https://swdist.apple.com/content/downloads/07/04/142-27431-A_VX0FXASAKC/m7trj81qnvp94e9nzr06e7qi9lqey7cwmu/InstallAssistant.pkm",
+      "URL": "https://swcdn.apple.com/content/downloads/07/04/142-27431-A_VX0FXASAKC/m7trj81qnvp94e9nzr06e7qi9lqey7cwmu/InstallAssistant.pkg",
+      "IntegrityDataSize": 53852
+    },
+    "distribution": "https://swdist.apple.com/content/downloads/07/04/142-27431-A_VX0FXASAKC/m7trj81qnvp94e9nzr06e7qi9lqey7cwmu/142-27431.English.dist"
+  },
+  "installerVerification": {
+    "version": "15.8.1",
+    "build": "24H32",
+    "product": "142-27431",
+    "bytes": 15664523626,
+    "sha1": "eb4901609a100acc4fc842e56fb67bfba521f3cb",
+    "sha256": "e4532e3337431292a7f227fcde7eb57f7b907547e2a26b43d3aab5a3f6e44781",
+    "integrityDataV1": {
+      "chunks": 1494,
+      "bytes": 15664523626,
+      "signatureMethod": 2,
+      "manifestChecksumVerified": true,
+      "nativeAppleSignatureVerified": false,
+      "sha1": "eb4901609a100acc4fc842e56fb67bfba521f3cb",
+      "sha256": "e4532e3337431292a7f227fcde7eb57f7b907547e2a26b43d3aab5a3f6e44781"
+    },
+    "nativePackageSignatureVerified": false,
+    "installerExecuted": false,
+    "catalogDigest": {
+      "verified": true,
+      "kind": "xar-compressed-toc-sha1",
+      "digest": "5edb8d574af56ff56cffc27160d4c998166b5882"
+    },
+    "catalogDigestVerified": true
+  },
+  "xarSignatureMathVerification": {
+    "xarRsaSignatureVerified": true,
+    "embeddedCertificateChainCryptographicallyVerified": true,
+    "certificateValidityAtCheck": "passed",
+    "trustedRootUrl": "https://www.apple.com/appleca/AppleIncRootCertificate.cer",
+    "trustedRootSha256": "b0b1730ecbc7ff4505142c49f1295e6eda6bcaed7e2c68c5be91b5a11001f024",
+    "revocationChecked": false,
+    "nativeMacosPolicyEvaluated": false,
+    "nativePackageSignatureVerified": false
+  },
+  "wifi": {
+    "repository": "https://github.com/laobamac/itlwm",
+    "tag": "v2.4.0-alpha",
+    "commit": "738d4c6",
+    "asset": "AirportItlwm-Sequoia-v2.4.0-RELEASE-alpha-738d4c6.zip",
+    "sha256": "865d0096dc3dc36b4ac5f60a5896216bfde5774e2c1f175e66ac4761f834937e",
+    "physicalValidation": false
+  },
+  "appleInstallerIncludedInGit": false,
+  "realIdentityIncludedInGit": false
+}

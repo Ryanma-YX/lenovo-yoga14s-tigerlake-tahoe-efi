@@ -1,5 +1,6 @@
 /.venv/
 /build/
+/experiments/*/build/
 /private/
 __pycache__/
 *.pyc
