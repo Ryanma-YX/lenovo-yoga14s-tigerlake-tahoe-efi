@@ -1,0 +1,77 @@
+{
+  "adapter_sha256": "5e5b788afa4d5b314f5425f3083aba801573a0a5b6c93a4938bdae61a839401e",
+  "scope": "static-x86_64-disassembly",
+  "sites": [
+    {
+      "site": "0x1426",
+      "instruction": "jne 0x1684",
+      "reason": "null-bitcode-or-length"
+    },
+    {
+      "site": "0x143a",
+      "instruction": "jb 0x1684",
+      "reason": "wrapper-short"
+    },
+    {
+      "site": "0x1445",
+      "instruction": "jne 0x1684",
+      "reason": "wrapper-version"
+    },
+    {
+      "site": "0x1461",
+      "instruction": "jne 0x1684",
+      "reason": "wrapper-offset"
+    },
+    {
+      "site": "0x147a",
+      "instruction": "jne 0x1684",
+      "reason": "wrapper-size"
+    },
+    {
+      "site": "0x1495",
+      "instruction": "jb 0x1684",
+      "reason": "raw-short"
+    },
+    {
+      "site": "0x14a4",
+      "instruction": "jne 0x1684",
+      "reason": "raw-magic"
+    },
+    {
+      "site": "0x14ba",
+      "instruction": "je 0x1684",
+      "reason": "input-allocation"
+    },
+    {
+      "site": "0x14e3",
+      "instruction": "je 0x167f",
+      "reason": "scan-allocation"
+    },
+    {
+      "site": "0x1552",
+      "instruction": "je 0x1673",
+      "reason": "attribute-scan"
+    },
+    {
+      "site": "0x1575",
+      "instruction": "jne 0x167b",
+      "reason": "attribute-state"
+    },
+    {
+      "site": "0x159a",
+      "instruction": "je 0x1693",
+      "reason": "function-conversion"
+    },
+    {
+      "site": "0x15c4",
+      "instruction": "je 0x16a6",
+      "reason": "parser-allocation"
+    },
+    {
+      "site": "0x15fc",
+      "instruction": "je 0x1698",
+      "reason": "backend-parser"
+    }
+  ],
+  "liveBreakpointTested": false
+}

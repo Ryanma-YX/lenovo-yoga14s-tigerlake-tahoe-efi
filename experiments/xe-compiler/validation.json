@@ -1,0 +1,18 @@
+{
+  "checkedDateTaipei": "2026-10-26",
+  "scope": "offline experimental diagnostics only",
+  "pythonUnitTests": {"passed": 4, "platform": "Windows Python 3.14", "lldbAPI": "mocked, not live"},
+  "originalAdapterBranchInstructions": {"passed": 14, "method": "Capstone 5.0.7 static decode of hash-pinned Mach-O"},
+  "runnerCpuMock": {"passed": true, "platform": "Ubuntu WSL", "compiler": "g++", "sanitizers": ["AddressSanitizer", "UndefinedBehaviorSanitizer"], "expectedCompilerReturn": 1},
+  "bashSyntax": "passed",
+  "baselineEfi": {"hashedFilesUnchanged": 95, "identityRedaction": "passed", "ocvalidateConfigsPassed": 2},
+  "macosCompilation": "not-run",
+  "macosSignatureVerification": "not-run",
+  "liveLldbCapture": "not-run",
+  "actualFailingShaderObtained": false,
+  "originalAdapterNativeReplay": "not-run",
+  "replacementAdapterBuilt": false,
+  "replacementAdapterDeployed": false,
+  "metalOperation": "not-run",
+  "coreAnimationLoginStability": "not-run"
+}

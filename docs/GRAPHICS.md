@@ -6,7 +6,7 @@
 
 | 模式 | 实机证据 | 当前判断 |
 | --- | --- | --- |
-| 启用加速 | 11 份 WindowServer 报告为 COREANIMATION code 4，`Xe compiler unsupported bitcode layout`，调用栈包含 `CA::OGL::MetalContext::create_pipeline_state` | Metal shader 编译链中的失败导致桌面进程退出 |
+| 启用加速 | 最新本地采集目录重新解析得到 13 份唯一 WindowServer 报告（早先审查为 11 份），COREANIMATION code 4，`Xe compiler unsupported bitcode layout`，调用栈包含 `CA::OGL::MetalContext::create_pipeline_state` | Metal shader 编译链中的失败导致桌面进程退出 |
 | `-wex-noaccel` | 可登录；02:37:54、02:39:14 的报告为 WATCHDOG code 1，主线程超过 40 秒未 checkin | 另有桌面卡死，不能称为同一个编译错误 |
 | 安全模式 `-x` | 曾成功进入桌面，基本 GOP 显示 | 只证明这一退路可用，不是正常加速验证 |
 
@@ -34,10 +34,10 @@ Graphics 仓库的 [SOURCES.md](https://github.com/b00t0x/WhateverXe-Graphics/bl
 
 1. **保留本次可启动、触控板正常的基线。** 当前去掉 `-wex-noaccel` 会重新进入已知有问题的加速路径，不能将这个操作叫作修复。
 2. **先降低桌面效果作为临时对照。** 在系统设置的辅助功能中开启减少透明度、减少动态效果，使用静态壁纸；测试较低的实际输出分辨率。注意“看起来像”的 HiDPI 缩放可能采用更高的内部渲染分辨率，不能只看字号变大。该实验只能判断负载影响，不保证消除 WATCHDOG，也不恢复 Metal。[Apple 的显示和动态效果说明](https://www.apple.com/accessibility/features/)
-3. **修复重点是捕获适配器输入。** 向作者提供 9A49、系统构建、组件版本、复现路径和精简错误栈，申请带拒绝分支和 shader 输入导出的诊断版本，或自定义适配器源码；随后用真实失败样本修复兼容转换。现有 upstream Issue 创建受限，可以使用作者公开的反馈渠道，但本仓库维护过程没有代用户发布消息。
+3. **修复重点是捕获适配器输入。** 已准备 [原 adapter 的 LLDB 捕获与独立重放工具](../experiments/xe-compiler/README.md)，先在 macOS 验证附加权限并取得实际失败 shader；随后修复已定位的转换分支。若保护进程不可附加，仍需可调试环境或签名诊断版。当前没有真实输入，不把日志收集当作完成。没有代用户向上游发消息。
 4. **需要更快取得可用系统时，做独立 OS 对照。** 上游也列出 Sequoia 15.8.x 为支持范围，可在独立测试目标验证；本机尚未证明它能稳定加速。不要覆盖当前系统，也不要改动受保护的原 APFS 数据分区。成功或失败都应保存版本、同一操作的结果和日志，才能区分 Tahoe 专有路径与更普遍的故障。[上游兼容表](https://github.com/b00t0x/WhateverXe/blob/0.5.0/README.md#compatibility)
 
-存在另一项目的公开 [compiler-adapter.cpp](https://github.com/JulioNectar/Hackintosh-XPS13Plus-IrisXe-Tahoe/blob/b3f6b09af1a60093c0d953211469d0ef1fbd1847/macos/src/compiler-adapter.cpp)，可研究输入导出和 LLVM 桥接；它面向不同显卡和 NootedGreen 栈，路径与签名部署也不同。它不是当前 WEX 签名包可直接替换的 dylib，尚未在本机部署。
+另一项目的公开 compiler-adapter.cpp 已审查至 main `453a7b5`，相关编译器文件相对原 `b3f6b09` 未变化。入口布局相近，但它调用旧 plugin 的 WithOptions 和 Tahoe LLVM；当前 WEX 直接调用 AIR 后端，不能单文件替换。完整 [兼容性审查、源码哈希及验证状态](../experiments/xe-compiler/AUDIT.md) 已放在独立实验目录；尚未移植或部署替代驱动。
 
 ## 不应据此推导的修复
 

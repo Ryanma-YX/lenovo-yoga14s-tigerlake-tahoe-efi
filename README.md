@@ -6,6 +6,8 @@
 
 **触控板已实机确认可用；Metal 和桌面稳定性仍有问题。这不是一套已经完善的日用配置。** 主配置保留 `-wex-noaccel`，暂时禁用 GPU 加速；该模式下仍出现过 WindowServer 卡死。见 [显卡故障与后续方案](docs/GRAPHICS.md)。
 
+编译器替换研究现有独立 [诊断实验](experiments/xe-compiler/README.md)：已完成 ABI/依赖静态审查和 CPU mock 测试，提供原 adapter 的 LLDB 输入捕获、离线重放及 macOS 操作说明。尚无真实失败 shader、macOS 构建或替代驱动实机结论；没有改动本 EFI。
+
 仓库中的 EFI 从当前 SSD 实际启动文件同步，机器序列号、MLB、SystemUUID、ROM 与蓝牙控制器缓存已脱敏。恢复镜像、Graphics 安装包、原始硬件报告和完整启动日志不在仓库里。最初的 DEBUG 安装介质版本保留在 Git 历史中。
 
 ## 实机与状态

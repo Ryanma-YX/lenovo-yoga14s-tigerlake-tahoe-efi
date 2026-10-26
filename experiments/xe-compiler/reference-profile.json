@@ -1,0 +1,45 @@
+{
+  "checkedDateTaipei": "2026-10-26",
+  "repository": "https://github.com/JulioNectar/Hackintosh-XPS13Plus-IrisXe-Tahoe",
+  "previousCommit": "b3f6b09af1a60093c0d953211469d0ef1fbd1847",
+  "observedMain": "453a7b5222d1e3f7f26c948feeaedc8f71d058b3",
+  "files": {
+    "macos/src/compiler-adapter.cpp": {
+      "sha256": "e785c88d6b0e5fdf7678f822687329693906180f6bdddd3b820be5453e2a1c67",
+      "bytes": 8456,
+      "unchangedSincePreviousAudit": true
+    },
+    "macos/src/llvm-bridge.cpp": {
+      "sha256": "de3f77e8347ea6cfb4046fc10415243e0638e85127f979b9b549409fb6cb0eb1",
+      "bytes": 8661,
+      "unchangedSincePreviousAudit": true
+    },
+    "macos/build-shader-compiler.sh": {
+      "sha256": "d3e2a4178260833e0c7ba38e95742b2009cc78f0b8210c7eaa2dec585b2dae7b",
+      "bytes": 4237,
+      "unchangedSincePreviousAudit": true
+    },
+    "macos/plugin-old-patches.json": {
+      "sha256": "4101528604fe0156954dc9224d458f0319291ed52912267af9b19c15f6a07914",
+      "bytes": 4341,
+      "unchangedSincePreviousAudit": true
+    },
+    "docs/METAL.md": {
+      "sha256": "eb9b0e7eee87f5071dfff0c93df8109be6a20764b0d506bf0429d31a83689340",
+      "bytes": 16064,
+      "unchangedSincePreviousAudit": true
+    },
+    "LICENSE": {
+      "sha256": "71406ea74cdb08d64bffcc4aa10c610ce1d8ec3eb0dfddf2170631ca404393a8",
+      "bytes": 10051,
+      "unchangedSincePreviousAudit": true
+    }
+  },
+  "changedFiles": [
+    "CHANGELOG.md",
+    "EFI/OC/Kexts/NootedGreen.kext/Contents/MacOS/NootedGreen",
+    "docs/CATALOG.md",
+    "src/NootedGreen/kern_gen11.cpp"
+  ],
+  "licenseHeading": "Licensed under the Thou Shalt Not Profit License version 1.0"
+}

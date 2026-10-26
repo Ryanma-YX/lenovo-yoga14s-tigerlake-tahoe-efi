@@ -1,0 +1,63 @@
+{
+  "sha256": "a27eaea380aee524a1972927cb44774da1affe0cea93e94c307927f38d41aaf4",
+  "bytes": 20671632,
+  "uuid": "1c2d8c61bdce34518b254a58db8cfc90",
+  "dependencies": [
+    {
+      "command": "0xc",
+      "name": "/usr/lib/libSystem.B.dylib"
+    },
+    {
+      "command": "0xc",
+      "name": "/usr/lib/libc++.1.dylib"
+    }
+  ],
+  "compiler_symbols": [
+    {
+      "name": "_CompileCSAIRFn",
+      "defined": true,
+      "value": "0x30570"
+    },
+    {
+      "name": "_CompilePSAIRFn",
+      "defined": true,
+      "value": "0x30550"
+    },
+    {
+      "name": "_CompileVSAIRFn",
+      "defined": true,
+      "value": "0x30510"
+    },
+    {
+      "name": "_CreateShaderCompilerAIR",
+      "defined": true,
+      "value": "0x30410"
+    },
+    {
+      "name": "_DeleteCSAIR",
+      "defined": true,
+      "value": "0x30650"
+    },
+    {
+      "name": "_DeletePSAIR",
+      "defined": true,
+      "value": "0x30620"
+    },
+    {
+      "name": "_DeleteShaderCompilerAIR",
+      "defined": true,
+      "value": "0x304e0"
+    },
+    {
+      "name": "_DeleteVSAIR",
+      "defined": true,
+      "value": "0x30590"
+    }
+  ],
+  "code_signature_command": {
+    "offset": 20493216,
+    "bytes": 178416
+  },
+  "signature_verified": false,
+  "macos_loaded": false
+}

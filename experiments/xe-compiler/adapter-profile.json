@@ -1,0 +1,39 @@
+{
+  "sha256": "5e5b788afa4d5b314f5425f3083aba801573a0a5b6c93a4938bdae61a839401e",
+  "bytes": 81856,
+  "uuid": "6fc99e910efe326eb2841fde610d1697",
+  "dependencies": [
+    {
+      "command": "0xc",
+      "name": "/usr/lib/libSystem.B.dylib"
+    }
+  ],
+  "compiler_symbols": [
+    {
+      "name": "_MTLCompilerBuildRequestWithSerializedBitcode",
+      "defined": true,
+      "value": "0x12c0"
+    },
+    {
+      "name": "_MTLCompilerCreate",
+      "defined": true,
+      "value": "0x600"
+    },
+    {
+      "name": "_MTLCompilerDelete",
+      "defined": true,
+      "value": "0xcb0"
+    },
+    {
+      "name": "_MTLCompilerReleaseReply",
+      "defined": true,
+      "value": "0xc80"
+    }
+  ],
+  "code_signature_command": {
+    "offset": 72640,
+    "bytes": 9216
+  },
+  "signature_verified": false,
+  "macos_loaded": false
+}

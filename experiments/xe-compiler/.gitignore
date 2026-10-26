@@ -1,0 +1,10 @@
+/build/
+/captures/
+/local/
+*.dylib
+*.bc
+*.bin
+*.ips
+*.spin
+*.log
+._*
